@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import {
-  implementsChapterProviding,
-  implementsSearchResultsProviding,
-  SourceIntents,
   type Chapter,
   type ChapterProviding,
   type Extension,
   type ExtensionInfo,
+  implementsChapterProviding,
+  implementsSearchResultsProviding,
   type MangaProviding,
   type PagedResults,
   type SearchResultItem,
   type SearchResultsProviding,
   type SortingOption,
+  SourceIntents,
   type SourceManga,
   type TestLogger,
 } from "@paperback/types";
@@ -89,22 +89,28 @@ export class TestSuite {
 type ExtensionTestData = {
   searchResultsProviding?:
     | {
-        getSearchResults: Parameters<SearchResultsProviding["getSearchResults"]> | false;
-        getSortingOptions?:
-          | Parameters<Exclude<SearchResultsProviding["getSortingOptions"], undefined>>
-          | false;
-      }
+      getSearchResults:
+        | Parameters<SearchResultsProviding["getSearchResults"]>
+        | false;
+      getSortingOptions?:
+        | Parameters<
+          Exclude<SearchResultsProviding["getSortingOptions"], undefined>
+        >
+        | false;
+    }
     | false;
   mangaProviding?:
     | {
-        getMangaDetails: Parameters<MangaProviding["getMangaDetails"]> | false;
-      }
+      getMangaDetails: Parameters<MangaProviding["getMangaDetails"]> | false;
+    }
     | false;
   chapterProviding?:
     | {
-        getChapters: Parameters<ChapterProviding["getChapters"]> | false;
-        getChapterDetails: Parameters<ChapterProviding["getChapterDetails"]> | false;
-      }
+      getChapters: Parameters<ChapterProviding["getChapters"]> | false;
+      getChapterDetails:
+        | Parameters<ChapterProviding["getChapterDetails"]>
+        | false;
+    }
     | false;
 };
 
@@ -118,7 +124,10 @@ export const registerDefaultTests = function (
 
   let sourceCapabilities: SourceIntents = 0;
   if (Array.isArray(extensionInfo.capabilities)) {
-    sourceCapabilities = extensionInfo.capabilities.reduce((a, b) => a | b, sourceCapabilities);
+    sourceCapabilities = extensionInfo.capabilities.reduce(
+      (a, b) => a | b,
+      sourceCapabilities,
+    );
   } else {
     sourceCapabilities = extensionInfo.capabilities;
   }
@@ -141,12 +150,23 @@ export const registerDefaultTests = function (
   }
 
   if (testData.mangaProviding !== false) {
-    registerDefaultMangaProvidingSourceTests(suite, extension, testData.mangaProviding);
+    registerDefaultMangaProvidingSourceTests(
+      suite,
+      extension,
+      testData.mangaProviding,
+    );
   }
 
-  if (sourceCapabilities & SourceIntents.CHAPTER_PROVIDING && testData.chapterProviding !== false) {
+  if (
+    sourceCapabilities & SourceIntents.CHAPTER_PROVIDING &&
+    testData.chapterProviding !== false
+  ) {
     if (implementsChapterProviding(extension)) {
-      registerDefaultChapterProvidingSourceTests(suite, extension, testData.chapterProviding);
+      registerDefaultChapterProvidingSourceTests(
+        suite,
+        extension,
+        testData.chapterProviding,
+      );
     } else {
       throw new Error(
         `extension does not implement 'ChapterProviding' but has the 'CHAPTER_PROVIDING' capability`,
@@ -183,7 +203,9 @@ export const registerDefaultSearchResultsProvidingSourceTests = function (
   extension: Extension & SearchResultsProviding,
   testData: Exclude<ExtensionTestData["searchResultsProviding"], false>,
 ) {
-  if ("getSortingOptions" in extension && testData?.getSortingOptions !== false) {
+  if (
+    "getSortingOptions" in extension && testData?.getSortingOptions !== false
+  ) {
     suite.test("getSortingOptions", async () => {
       let params = testData?.getSortingOptions;
       if (!params) {
@@ -193,7 +215,8 @@ export const registerDefaultSearchResultsProvidingSourceTests = function (
       const sortingOptions = await extension.getSortingOptions!(...params);
       expect(sortingOptions).not.empty;
 
-      suite.state[STATE_KEY.SearchResultsProviding.getSortingOptions] = sortingOptions;
+      suite.state[STATE_KEY.SearchResultsProviding.getSortingOptions] =
+        sortingOptions;
     });
   }
 
@@ -203,9 +226,10 @@ export const registerDefaultSearchResultsProvidingSourceTests = function (
 
       let params = testData?.getSearchResults;
       if (!params) {
-        const sortingOptions = suite.state[STATE_KEY.SearchResultsProviding.getSortingOptions] as
-          | SortingOption[]
-          | undefined;
+        const sortingOptions = suite
+          .state[STATE_KEY.SearchResultsProviding.getSortingOptions] as
+            | SortingOption[]
+            | undefined;
         params = [{ title: "" }, undefined, sortingOptions?.[0]];
       }
 
@@ -213,7 +237,8 @@ export const registerDefaultSearchResultsProvidingSourceTests = function (
       expect(searchResults).not.empty;
       expect(searchResults.items).not.be.empty;
 
-      suite.state[STATE_KEY.SearchResultsProviding.getSearchResults] = searchResults;
+      suite.state[STATE_KEY.SearchResultsProviding.getSearchResults] =
+        searchResults;
     });
   }
 };
@@ -229,9 +254,10 @@ export const registerDefaultMangaProvidingSourceTests = function (
 
       let params = testData?.getMangaDetails;
       if (!params) {
-        const searchResults = suite.state[STATE_KEY.SearchResultsProviding.getSearchResults] as
-          | PagedResults<SearchResultItem>
-          | undefined;
+        const searchResults = suite
+          .state[STATE_KEY.SearchResultsProviding.getSearchResults] as
+            | PagedResults<SearchResultItem>
+            | undefined;
         if (searchResults?.items[0]?.mangaId) {
           params = [searchResults.items[0].mangaId];
         } else {
@@ -261,9 +287,10 @@ export const registerDefaultChapterProvidingSourceTests = function (
 
       let params = testData?.getChapters;
       if (!params) {
-        const sourceManga = suite.state[STATE_KEY.MangaProviding.getMangaDetails] as
-          | SourceManga
-          | undefined;
+        const sourceManga = suite
+          .state[STATE_KEY.MangaProviding.getMangaDetails] as
+            | SourceManga
+            | undefined;
 
         if (sourceManga) {
           params = [sourceManga];
@@ -303,7 +330,8 @@ export const registerDefaultChapterProvidingSourceTests = function (
       const chapterDetails = await extension.getChapterDetails(...params);
       expect(chapterDetails).to.not.be.undefined;
 
-      suite.state[STATE_KEY.ChapterProviding.getChapterDetails] = chapterDetails;
+      suite.state[STATE_KEY.ChapterProviding.getChapterDetails] =
+        chapterDetails;
     });
   }
 };

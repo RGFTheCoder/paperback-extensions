@@ -4,37 +4,37 @@ Paperback extensions for websites with unique, non-generic themes.
 
 ## Available Extensions
 
-- [Atsumaru](https://atsu.moe)
-- [Comix](https://comix.to)
-- [MangaDemon](https://demonicscans.org)
-- [MangaDex](https://mangadex.org)
-- [MangaDot](https://mangadot.net)
-- [MangaFire](https://mangafire.to)
-- [MangaFox](https://fanfox.net)
-- [MangaKatana](https://mangakatana.com)
-- [Mangapill](https://mangapill.com)
-- [MangaPlus](https://mangaplus.shueisha.co.jp)
-- [MangaTaro](https://mangataro.org)
-- [Mgeko](https://mgeko.cc)
-- [PunkRecords](https://punkrecordz.com)
-- [QiScans](https://qimanhwa.com)
-- [Webtoon](https://webtoons.com)
-- [WeebCentral](https://weebcentral.com)
+- [ComixTo (DMC)](https://comix.to)
 
 ## Installation
 
-To add these extensions to Paperback, it’s recommended to install the registry via the [installation page][registry-installation-page] on the Inkdex website. Alternatively, you can install just this repository by visiting [this webpage][repository-installation-page].
+These extensions are bundled and published to GitHub Pages by the
+[Bundle and Deploy](.github/workflows/bundle-deploy.yaml) workflow. To add them
+to Paperback, open the app and go to **Settings → Extensions → Add Repository**,
+then enter the GitHub Pages URL for a published version branch:
 
-## Support Guidelines
+```
+https://rgfthecoder.github.io/paperback-extensions/0.9/stable
+```
 
-Need help? Check out our [Support Guidelines][support-guidelines] in the [registry repository][registry-repository]. Issues and discussions are disabled in the extension repositories and should be posted in the registry repository instead.
+(The path segment after the repository name matches the version branch that was
+built, e.g. `0.9/stable`.)
 
-## Contributing Guidelines
+## Support
 
-Want to contribute? Read the [Contributing Guidelines][contributing-guidelines] in the [registry repository][registry-repository] to get started.
+Found a bug or need help? Open an issue on this repository's
+[issue tracker](https://github.com/RGFTheCoder/paperback-extensions/issues).
 
-[registry-installation-page]: https://inkdex.github.io/installation
-[repository-installation-page]: https://inkdex.github.io/general-extensions/0.9/stable
-[support-guidelines]: https://github.com/inkdex/extensions/blob/master/.github/SUPPORT.md
-[registry-repository]: https://github.com/inkdex/extensions
-[contributing-guidelines]: https://github.com/inkdex/extensions/blob/master/.github/CONTRIBUTING.md
+## Development
+
+This repository is Deno-based; no Node.js or npm is required.
+
+| Task               | Command                 |
+| ------------------ | ----------------------- |
+| Install deps       | `deno install`          |
+| Format             | `deno task fmt`         |
+| Format + typecheck | `deno task conformance` |
+| Bundle extensions  | `deno task bundle`      |
+| Run tests          | `deno task test`        |
+
+Bundled output is written to `bundles/`.
