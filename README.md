@@ -8,17 +8,16 @@ Paperback extensions for websites with unique, non-generic themes.
 
 ## Installation
 
-These extensions are bundled and published to GitHub Pages by the
+These extensions are bundled and published by the
 [Bundle and Deploy](.github/workflows/bundle-deploy.yaml) workflow. To add them
 to Paperback, open the app and go to **Settings → Extensions → Add Repository**,
-then enter the GitHub Pages URL for a published version branch:
+then enter the URL for a published version branch:
 
 ```
-https://rgfthecoder.github.io/paperback-extensions/0.9/stable
+https://paperback.damastacoda.dev/0.9/stable/
 ```
 
-(The path segment after the repository name matches the version branch that was
-built, e.g. `0.9/stable`.)
+(The path segment matches the version branch that was built, e.g. `0.9/stable`.)
 
 ## Support
 
