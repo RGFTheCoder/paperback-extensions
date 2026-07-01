@@ -5,7 +5,7 @@
 // response interceptor across many samples. This tests the shipped files
 // (catching generation bugs), not just the in-process logic.
 //
-//   deno run -A experiment/crypto-pipeline/validate.mjs
+//   deno run -A experiment/crypto-pipeline/validate.ts
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -13,7 +13,7 @@ import { pathToFileURL } from "node:url";
 import {
   ROOT, bootBundle, liveSign, liveDecrypt,
   bytes, invert, encryptBytes, stableJson,
-} from "./lib.mjs";
+} from "./lib.ts";
 
 const CONSTANTS = resolve(ROOT, "experiment/crypto-pipeline/constants.json");
 

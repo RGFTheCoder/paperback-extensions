@@ -15,7 +15,7 @@ to Paperback, open the app and go to **Settings → Extensions → Add Repositor
 then enter the GitHub Pages URL for a published version branch:
 
 ```
-https://rgfthecoder.github.io/paperback-extensions/0.8/stable
+https://paperback.damastacoda.dev/0.8/stable/
 ```
 
 (The path segment after the repository name matches the version branch that was

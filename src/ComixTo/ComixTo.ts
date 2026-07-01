@@ -78,10 +78,10 @@ export const ComixToInfo: SourceInfo = {
   version: "1.9.18",
   name: "ComixTo",
   icon: "icon.png",
-  author: "acepilot147",
-  authorWebsite: "https://acepilot147.github.io/pb-extensions/0.8",
+  author: "RGFTheCoder",
+  authorWebsite: "https://paperback.damastacoda.dev/0.8/stable",
   description:
-    "Comix.to Extension with advanced filters. Fork of AthK extensions for Paperback 0.8 (edited by acepilot147)",
+    "Comix.to Extension with advanced filters. Fork of AthK extensions for Paperback 0.8 (edited by acepilot147).",
   contentRating: ContentRating.EVERYONE,
   websiteBaseURL: DOMAIN,
   sourceTags: [

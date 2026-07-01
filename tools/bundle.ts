@@ -23,7 +23,7 @@ import { join, toFileUrl } from "@std/path";
 const REPO = {
   name: "ComixTo (DMC)",
   description: "Comix.to extension for Paperback 0.8 (DMC fork).",
-  baseURL: "https://rgfthecoder.github.io/paperback-extensions/0.8/stable",
+  baseURL: "https://paperback.damastacoda.dev/0.8/stable/",
 };
 
 const CWD = Deno.cwd();

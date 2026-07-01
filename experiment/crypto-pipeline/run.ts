@@ -1,17 +1,17 @@
 // Orchestrator — extract → generate → validate, in one shot.
 //
-//   node experiment/crypto-pipeline/run.mjs            # use the embedded bundle
-//   node experiment/crypto-pipeline/run.mjs --refresh  # refresh secure.js first
+//   deno run -A experiment/crypto-pipeline/run.ts            # use the embedded bundle
+//   deno run -A experiment/crypto-pipeline/run.ts --refresh  # refresh secure.js first
 //
 // --refresh fetches the live comix.to secure-*.js and regenerates
 // experiment/ComixBundle.ts before extracting (needs CF_CLEARANCE / SESSION /
 // USER_AGENT env, same as npm run refresh:comix).
 
 import { resolve } from "node:path";
-import { ROOT } from "./lib.mjs";
-import { extract } from "./extract.mjs";
-import { generate } from "./generate.mjs";
-import { validate } from "./validate.mjs";
+import { ROOT } from "./lib.ts";
+import { extract } from "./extract.ts";
+import { generate } from "./generate.ts";
+import { validate } from "./validate.ts";
 
 async function run({ refresh }) {
   if (refresh) {

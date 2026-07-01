@@ -20,7 +20,7 @@ extracts from (it is outside `src/`, so it is never compiled or shipped).
 ```bash
 deno task crypto:pipeline                         # uses experiment/ComixBundle.ts
 deno task crypto:pipeline -- --refresh            # fetch live secure.js first
-# or: deno run -A experiment/crypto-pipeline/run.mjs [--refresh]
+# or: deno run -A experiment/crypto-pipeline/run.ts [--refresh]
 ```
 
 `--refresh` runs `experiment/RefreshComixBundle.ts` first (needs
@@ -61,9 +61,9 @@ family changed. If you only have a new `secure.js` and no working env creds for
 Each step is also runnable on its own:
 
 ```bash
-deno run -A experiment/crypto-pipeline/extract.mjs    # -> constants.json
-deno run -A experiment/crypto-pipeline/generate.mjs   # -> src/ComixTo/ComixFast{Decrypt,Signer}.ts
-deno run -A experiment/crypto-pipeline/validate.mjs   # transpile + check vs live bundle
+deno run -A experiment/crypto-pipeline/extract.ts    # -> constants.json
+deno run -A experiment/crypto-pipeline/generate.ts   # -> src/ComixTo/ComixFast{Decrypt,Signer}.ts
+deno run -A experiment/crypto-pipeline/validate.ts   # transpile + check vs live bundle
 ```
 
 ## What it produces
@@ -81,11 +81,11 @@ APIs — manual base64 + UTF-8), strict-mode clean, and embed the constants.
 
 | file | role |
 |------|------|
-| `lib.mjs` | boot the bundle (anti-tamper-safe sandbox), boundary traces, cipher primitives |
-| `extract.mjs` | recover constants from the live bundle, solve IVs, self-verify → `constants.json` |
-| `generate.mjs` | emit the two native TS files from `constants.json` |
-| `validate.mjs` | transpile the **emitted** files and check them vs the live signer + `resI` |
-| `run.mjs` | orchestrate extract → generate → validate |
+| `lib.ts` | boot the bundle (anti-tamper-safe sandbox), boundary traces, cipher primitives |
+| `extract.ts` | recover constants from the live bundle, solve IVs, self-verify → `constants.json` |
+| `generate.ts` | emit the two native TS files from `constants.json` |
+| `validate.ts` | transpile the **emitted** files and check them vs the live signer + `resI` |
+| `run.ts` | orchestrate extract → generate → validate |
 
 ## The algorithm (current: `sbox-cbc`, 3 rounds)
 
@@ -114,7 +114,7 @@ sign round:     out[i] = sbox[ in[i] ^ out[i-1] ^ key[i % len] ]   (out[-1] = iv
 If the family ever changes (decrypt stops being length-preserving, `atob` no
 longer yields 256-byte permutations, `crypto.subtle` gets called, etc.), extract
 will throw rather than emit wrong constants — that is the signal to characterize
-the new family per `../EXTRACTING_COMIX_CRYPTO.md` §4 and extend `extract.mjs`.
+the new family per `../EXTRACTING_COMIX_CRYPTO.md` §4 and extend `extract.ts`.
 
 ## Wiring into the extension (done)
 

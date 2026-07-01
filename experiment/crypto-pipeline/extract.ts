@@ -5,14 +5,14 @@
 // the decrypt output (captured at the TextDecoder boundary). Validates the
 // recovered constants against the live bundle before writing constants.json.
 //
-//   node experiment/crypto-pipeline/extract.mjs
+//   deno run -A experiment/crypto-pipeline/extract.ts
 
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   ROOT, bootBundle, liveSign, liveDecrypt,
   bytes, invert, decRound, decryptBytes, encryptBytes, b64url, utf8Decode,
-} from "./lib.mjs";
+} from "./lib.ts";
 
 const OUT = resolve(ROOT, "experiment/crypto-pipeline/constants.json");
 const PROBE_PATH = "/manga/xlyyj/chapters";
