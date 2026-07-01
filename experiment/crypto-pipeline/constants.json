@@ -1,0 +1,29 @@
+{
+  "bundleId": "58c4b11b0f71",
+  "algorithm": "sbox-cbc",
+  "rounds": 3,
+  "cfg": "ZZYdbXagjEpeaRwTE56mTpBkKVnnIBmAB3gdwWXXjEM7ZqAcLgonw0ylNjY621zM0zefn1Qg_jIQEn0oAIFnaXeGk3K4XZgY6S1Ldadwahluwgs-siIh0m-Lbw",
+  "generatedAt": "2026-07-01T23:38:17.553Z",
+  "note": "Decrypt applies inverse stages in order 1..N; sign applies forward stages in order N..1. Same (sbox,key,iv) triples both directions.",
+  "stages": [
+    {
+      "sboxB64": "hhNit22WWR9Nu5X7+UnED8bRkN15Akxr6qbiahmrx6eKUI1AlHRXBUf0YTApaf/XSE64vSK8NuTbU7qfpc4QyP7JKBQnrDfBDCRu2FxgiN6eaIkds8BbfSPW7zuYfv367cJwC8y+P7ld36PKgAOp4FXLCe6PokHmdrbsw82uSwFa1XH1rWwWByuHghoc4SHl8TqBZTx/hIva9jKh52MbhT1Pew1DGF9UqhXrk0rcRAh3ejWMIDMXtPec8rKdRenS/AAefLCZr3J1MSoGLyYEz7GgLTRvxfPQWPCal1JzOPibLA7UVuN4v+iDXlESOSVnCi612RFmZEZCqJGSPqSO0w==",
+      "keyB64": "AoxInIinOt6G8seYoJix/iN/",
+      "iv": 232
+    },
+    {
+      "sboxB64": "8ID4yalwCgxqUunAT/owdkkERUJv/zi1678e2tMmqIhO1WGL7uYOV/RUrEZxFgEzWRM/NQVdlorG0i+ZWuGn/bvg2Y0nIery4w2J6CIdXCw6dWzkmPP1z7S+ehWdtv6DbV/YNIxHG8wkGpOiYEpu8bML+bID1t14j+32K9yGTGaww+xkdN7HB7H3lUMxlOIYI71yyhHEIHwq561rRKAJ25sGvOWahBc+SFEPW8L8f35oczdNU9EpoRSX+wimNoGQaS4cPZE7zYc8gp7Oqu/Qq99eEFW6hRmSd0F9pLnIOSiOrpy4e2dYAMGlYp9lo0ASt9QlUC0fY68yVgLF10vLeQ==",
+      "keyB64": "3EZs0aj6HfXoPsLi8vJW1JqqxR6gywB4WfNwYg==",
+      "iv": 89
+    },
+    {
+      "sboxB64": "7Zz7Fb6E1Tts/kAtobexmz9jiHyWYM0rA7noGa/zeHrBFpVpDNPXVlXELPn9QeESDXa6i07lRV6jIOMBWRQIBySnN60zrAWMNYWgBBiDAvbDND3s0Vg+90M6R/Gl75gqmmR/Ntpzu45QrsjnTfwPd2ardHEv8ikctNyZ1miBJ7a/aiWKYUkTsiIApt0L+PCp5HuQOMAhncwdXQpKpFt9qjll9QZuRM4avVJU7sL6s48mdWIea8eRT0iiV7C8h8kxZ40fedjeI89tcDLSiUbGTC7UMFHmbxGUS5OoKMtTtQmX6lyeuFpfftCA6f/g9Ns82ZKfcheGDuKCG8rfQhDrxQ==",
+      "keyB64": "lngA+TKmLX5HeI08Xvhin05wqg==",
+      "iv": 38
+    }
+  ],
+  "verified": {
+    "signer": true,
+    "decrypt": true
+  }
+}
