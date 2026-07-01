@@ -1,16 +1,10 @@
 export const API_BASE = "https://comix.to/api/v1";
 export const DOMAIN = "https://comix.to";
 
-/**
- * Normalizes iOS smart quotes/apostrophes to their ASCII equivalents.
- * iOS autocorrect replaces ' with ' (U+2019), " with " / " (U+201C/U+201D),
- * which breaks search queries and string comparisons against API data.
- */
-export function normalizeString(str: string): string {
-  return str
-    .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'") // smart single quotes → '
-    .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"'); // smart double quotes → "
-}
+// Generic string/date helpers now live in the shared lib and are re-exported
+// here so the Comix modules can keep importing them from a single barrel.
+export { normalizeString } from "../../lib/strings.ts";
+export { parseRelativeTime } from "../../lib/time.ts";
 
 export interface APIResponse<T> {
   status: string; // "ok" | "error"
@@ -93,29 +87,6 @@ export interface APIGenreItem {
 
 // /tags/search returns `result` as the array directly, not wrapped in `items`.
 export type APIGenreResult = APIGenreItem[];
-
-/**
- * Parses a v1 relative-time string (e.g. "1d", "32m ago", "7mos ago") into a Date.
- * Returns the current time if the string is missing or unparseable.
- */
-export function parseRelativeTime(s?: string): Date {
-  if (!s) return new Date();
-  const m = s.match(/^(\d+)\s*(s|m|h|d|w|mos|mo|y)\b/i);
-  if (!m) return new Date();
-  const n = parseInt(m[1]!, 10);
-  const unit = m[2]!.toLowerCase();
-  const ms: Record<string, number> = {
-    s: 1000,
-    m: 60_000,
-    h: 60 * 60_000,
-    d: 24 * 60 * 60_000,
-    w: 7 * 24 * 60 * 60_000,
-    mo: 30 * 24 * 60 * 60_000,
-    mos: 30 * 24 * 60 * 60_000,
-    y: 365 * 24 * 60 * 60_000,
-  };
-  return new Date(Date.now() - n * (ms[unit] ?? 0));
-}
 
 // Static Filter Definitions
 export const CONTENT_TYPES = [

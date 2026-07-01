@@ -1,15 +1,15 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+// Shared, source-agnostic debug-log sink.
+//
+// Posts plain JSON lines to a log server running on your PC so you can watch
+// extension behavior in real time while testing on-device. This is a dev aid —
+// leave LOCAL_LOG_URL empty (the default for released builds) to disable it.
+//
+// To use: start a local log server (see the repo's dev tooling), copy the
+// "LAN URL" it prints, and paste it below. The device POSTs here over the LAN.
+
 import { RequestManager } from "@paperback/types";
 
-/**
- * Local-only debug log sink for `experiment/log-server.js`.
- *
- * Posts plain JSON lines to a log server running on your PC so you can watch
- * extension behavior in real time while testing on-device. This is a dev aid —
- * leave LOCAL_LOG_URL empty (the default for released builds) to disable it.
- *
- * To use: start `node experiment/log-server.js`, copy the "LAN URL" it prints,
- * and paste it below. The phone POSTs here over your local network.
- */
 export const LOCAL_LOG_URL: string = "";
 
 // Single gate for all debug instrumentation. Set LOCAL_LOG_URL to "" for

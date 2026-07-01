@@ -23,8 +23,8 @@ import {
 
 import { Parser } from "./Parser";
 import { fetchSigned, signUrl } from "./ComixHash";
-import { emit } from "./Telemetry";
-import { DEBUG, debugLog } from "./DebugLog";
+import { emit } from "../../lib/telemetry.ts";
+import { DEBUG, debugLog } from "../../lib/debug-log.ts";
 import {
   API_BASE,
   APIChapterResult,
