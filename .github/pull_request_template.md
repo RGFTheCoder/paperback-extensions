@@ -10,16 +10,16 @@
 
 #### For updates to existing extensions
 
-- [ ] Bumped the `version` value in `pbconfig.ts` for each modified extension.
+- [ ] Bumped the `version` value in each modified extension's `SourceInfo`.
 
 #### For new extensions
 
-- [ ] Added tests at `src/tests/EXTENSION_NAME.ts`.
+- [ ] The source folder follows the `src/<Name>/<Name>.ts` entry convention.
 
 ### Testing changes
 
 - [ ] `deno task conformance` passes.
-- [ ] `deno task test` passes.
+- [ ] `deno task bundle` succeeds.
 - [ ] Bundled the extension and verified it works in the Paperback app.
 
 ### Committing changes

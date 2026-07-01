@@ -2,23 +2,13 @@
   "nodeModulesDir": "auto",
   "unstable": ["sloppy-imports"],
   "imports": {
-    "@paperback/types": "npm:@paperback/types@^1.0.0-alpha.92",
-    "cheerio": "npm:cheerio@^1.2.0",
-    "domhandler": "npm:domhandler@^5.0.3",
-    "entities": "npm:entities@^6.0.1",
-    "chai": "npm:chai@^6.2.2",
-    "@types/chai": "npm:@types/chai@^5.2.3",
-    "esbuild": "npm:esbuild@0.25.5",
-    "@paperback/runtime-polyfills": "npm:@paperback/runtime-polyfills@1.0.0-alpha.92",
+    "@paperback/types": "npm:@paperback/types@^0.8.0-alpha.47",
     "@std/fs": "jsr:@std/fs@^1.0.19",
     "@std/path": "jsr:@std/path@^1.1.2"
   },
   "compilerOptions": {
     "lib": ["esnext", "dom", "dom.iterable"],
-    "strict": true,
-    "verbatimModuleSyntax": true,
-    "noImplicitOverride": true,
-    "noFallthroughCasesInSwitch": true
+    "strict": true
   },
   "fmt": {
     "exclude": ["bundles", "node_modules"]
@@ -28,8 +18,7 @@
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "check": "deno check src/ tools/",
-    "bundle": "deno run --allow-read --allow-write --allow-env --allow-run --allow-net tools/bundle.ts",
-    "test": "deno run --allow-read --allow-write --allow-env --allow-run --allow-net --allow-sys tools/test.ts",
+    "bundle": "deno run --allow-read --allow-write --allow-env --allow-run tools/bundle.ts",
     "conformance": "deno fmt --check && deno check src/ tools/"
   }
 }
