@@ -27,5 +27,9 @@ export default {
       name: "Catta1997",
       github: "https://github.com/Catta1997",
     },
+    {
+      name: "RGFTheCoder",
+      github: "https://github.com/RGFTheCoder",
+    },
   ],
 } satisfies ExtensionInfo;
