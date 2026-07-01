@@ -1,5 +1,5 @@
 {
-  "buildTime": "2026-07-01T22:47:40.649Z",
+  "buildTime": "2026-07-01T23:56:31.187Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.92",
     "types": "1.0.0-alpha.92"
@@ -28,6 +28,10 @@
         {
           "name": "Catta1997",
           "github": "https://github.com/Catta1997"
+        },
+        {
+          "name": "RGFTheCoder",
+          "github": "https://github.com/RGFTheCoder"
         }
       ],
       "id": "ComixDMC"
