@@ -13,7 +13,7 @@
 import { RequestManager, Response } from "@paperback/types";
 import { fastGenerateHash } from "./ComixFastSigner";
 import { fastDecryptComixPayload } from "./ComixFastDecrypt";
-import { emit } from "./Telemetry";
+import { emit } from "../../lib/telemetry.ts";
 
 // Paths the live bundle's request interceptor signs — verified by probing the
 // booted bundle (experiment/crypto-pipeline). As of bundle 6ffb/625d… (2026-06)
