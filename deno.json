@@ -11,14 +11,16 @@
     "strict": true
   },
   "fmt": {
-    "exclude": ["bundles", "node_modules"]
+    "exclude": ["bundles", "node_modules", "experiment"]
   },
-  "exclude": ["bundles", "node_modules"],
+  "exclude": ["bundles", "node_modules", "experiment"],
   "tasks": {
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "check": "deno check src/ tools/",
     "bundle": "deno run --allow-read --allow-write --allow-env --allow-run tools/bundle.ts",
-    "conformance": "deno fmt --check && deno check src/ tools/"
+    "conformance": "deno fmt --check && deno check src/ tools/",
+    "crypto:pipeline": "deno run -A experiment/crypto-pipeline/run.mjs",
+    "crypto:refresh": "deno run -A experiment/RefreshComixBundle.ts"
   }
 }
