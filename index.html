@@ -99,7 +99,9 @@
       //   displayName : name shown when adding the repo to Paperback
       //   pbVersion   : Paperback version the repo targets (badge text)
       //   path        : folder on this site containing versioning.json
-      //   sources     : the sources bundled inside that repo
+      //   sources     : the sources bundled inside that repo. Version numbers
+      //                 are NOT listed here — they're read at runtime from the
+      //                 repo's versioning.json (matched by source `id`).
       // ---------------------------------------------------------------------
       const REPOS = [
         {
@@ -108,8 +110,8 @@
           path: "unified/stable/0.8/",
           sources: [
             {
+              id: "ComixDMC",
               name: "Comix (DMC)",
-              version: "1.10.0-alpha.1",
               icon: "unified/stable/0.8/ComixDMC/includes/icon.png",
               description:
                 "Comix.to reader with shared image descrambling.",
@@ -122,8 +124,8 @@
           path: "unified/stable/0.9/",
           sources: [
             {
+              id: "ComixDMC",
               name: "Comix (DMC)",
-              version: "1.0.0-alpha.33",
               icon: "unified/stable/0.9/ComixDMC/static/icon.png",
               description:
                 "Comix.to reader with shared image descrambling.",
@@ -227,44 +229,77 @@
       const reposEl = document.getElementById("repos");
       const grid = document.getElementById("grid");
 
-      // Add-repo buttons are per Paperback-version repo.
+      // Add-repo buttons are per Paperback-version repo (no version needed).
       for (const repo of REPOS) {
         reposEl.appendChild(repoButton(repo));
       }
 
-      // Collapse to one card per source, aggregating the Paperback versions
-      // (badges) that each source supports across all repos.
-      const sourceMap = new Map();
-      const sourceOrder = [];
-      for (const repo of REPOS) {
-        for (const source of repo.sources) {
-          let entry = sourceMap.get(source.name);
-          if (!entry) {
-            entry = {
-              name: source.name,
-              description: source.description,
-              icon: source.icon,
-              support: [],
-            };
-            sourceMap.set(source.name, entry);
-            sourceOrder.push(entry);
+      // Read each source's live version from its repo's versioning.json
+      // (matched by source `id`) so the page never hard-codes version numbers.
+      async function fetchRepoVersions(repo) {
+        const versions = new Map();
+        try {
+          const res = await fetch(
+            absoluteRepoUrl(repo.path + "versioning.json"),
+            { cache: "no-store" },
+          );
+          if (!res.ok) return versions;
+          const data = await res.json();
+          for (const s of data.sources || []) {
+            if (s && s.id) versions.set(s.id, s.version);
           }
-          if (!entry.description && source.description) {
-            entry.description = source.description;
+        } catch {
+          // Offline / not deployed yet — fall back to version-less badges.
+        }
+        return versions;
+      }
+
+      async function render() {
+        await Promise.all(
+          REPOS.map(async (repo) => {
+            const versions = await fetchRepoVersions(repo);
+            for (const source of repo.sources) {
+              source.version = versions.get(source.id) ?? null;
+            }
+          }),
+        );
+
+        // Collapse to one card per source, aggregating the Paperback versions
+        // (badges) that each source supports across all repos.
+        const sourceMap = new Map();
+        const sourceOrder = [];
+        for (const repo of REPOS) {
+          for (const source of repo.sources) {
+            let entry = sourceMap.get(source.id);
+            if (!entry) {
+              entry = {
+                name: source.name,
+                description: source.description,
+                icon: source.icon,
+                support: [],
+              };
+              sourceMap.set(source.id, entry);
+              sourceOrder.push(entry);
+            }
+            if (!entry.description && source.description) {
+              entry.description = source.description;
+            }
+            if (!entry.icon && source.icon) entry.icon = source.icon;
+            entry.support.push({
+              pbVersion: repo.pbVersion,
+              version: source.version,
+            });
           }
-          if (!entry.icon && source.icon) entry.icon = source.icon;
-          entry.support.push({
-            pbVersion: repo.pbVersion,
-            version: source.version,
-          });
+        }
+
+        for (const source of sourceOrder) grid.appendChild(sourceCard(source));
+
+        if (!sourceOrder.length) {
+          document.getElementById("empty").classList.remove("hidden");
         }
       }
 
-      for (const source of sourceOrder) grid.appendChild(sourceCard(source));
-
-      if (!sourceOrder.length) {
-        document.getElementById("empty").classList.remove("hidden");
-      }
+      render();
     </script>
   </body>
 </html>
