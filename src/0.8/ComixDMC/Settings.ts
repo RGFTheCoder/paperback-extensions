@@ -63,6 +63,18 @@ export const keepAlive = <T>(obj: T): T => {
 const keepAliveAsync = <T>(obj: T): Promise<T> =>
   Promise.resolve(keepAlive(obj));
 
+// A native DUIBinding only references its get/set closures through a weak
+// JSManagedValue, so JSC's GC can collect them out from under it — under memory
+// pressure (e.g. a large chapter list loading) the next get/set then crashes
+// with "JSManagedValue was released". keepAlive-ing the switch object isn't
+// enough (it doesn't strongly retain the closures), so retain the closures
+// themselves before handing them to the binding. Drop-in for App.createDUIBinding.
+const createRetainedBinding: typeof App.createDUIBinding = (binding) => {
+  keepAlive(binding.get);
+  keepAlive(binding.set);
+  return App.createDUIBinding(binding);
+};
+
 // One-shot warm-up: runs once on first groupSettings render, skipped on all subsequent re-renders.
 // Pre-loads all values so the form renders with real data immediately.
 let groupSettingsWarmUp: Promise<void> | null = null;
@@ -206,7 +218,7 @@ export const contentSettings = (
                   id: "trending_limit",
                   label: "Trending Timeframe",
                   options: TRENDING_OPTIONS.map((opt) => opt.id),
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getTrendingLimit(stateManager),
                     set: async (newValue) =>
                       await stateManager.store("trending_limit", newValue),
@@ -234,7 +246,7 @@ export const contentSettings = (
                   id: "content_rating_max",
                   label: "Maximum Content Rating",
                   options: CONTENT_RATINGS.map((r) => r.id),
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => [await getContentRatingMax(stateManager)],
                     set: async (newValue: string[]) =>
                       await stateManager.store("content_rating_max", newValue),
@@ -262,7 +274,7 @@ export const contentSettings = (
                   id: "descramble_scheme",
                   label: "Descramble Scheme",
                   options: DESCRAMBLE_SCHEME_OPTIONS.map((o) => o.id),
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => [
                       (await getDescrambleScheme(stateManager)) ?? "auto",
                     ],
@@ -287,7 +299,7 @@ export const contentSettings = (
                 App.createDUISwitch({
                   id: "descramble_debug",
                   label: "Log descramble to app log (debug)",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getDescrambleDebug(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("descramble_debug", newValue),
@@ -322,7 +334,7 @@ export const groupSettings = (
                 App.createDUISwitch({
                   id: "toggle_uploaders_filtering",
                   label: "Enable Group Filtering",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getUploadersFiltering(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("uploaders_toggled", newValue),
@@ -331,7 +343,7 @@ export const groupSettings = (
                 App.createDUISwitch({
                   id: "uploaders_switch",
                   label: "Enable Whitelist Mode",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () =>
                       await getUploadersWhitelisted(stateManager),
                     set: async (newValue: boolean) =>
@@ -344,7 +356,7 @@ export const groupSettings = (
                 App.createDUISwitch({
                   id: "strict_name_matching",
                   label: "Strict Group Name Matching",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getStrictNameMatching(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store(
@@ -366,7 +378,7 @@ export const groupSettings = (
                 App.createDUISwitch({
                   id: "most_popular_only",
                   label: "Most Popular Only",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getMostPopularOnly(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("most_popular_only", newValue),
@@ -375,7 +387,7 @@ export const groupSettings = (
                 App.createDUISwitch({
                   id: "hide_partials",
                   label: "Hide Split Parts",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getHidePartials(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("hide_partials", newValue),
@@ -395,7 +407,7 @@ export const groupSettings = (
                   id: "uploaders_list",
                   label: "Currently Saved Groups",
                   options: uploaders,
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getSelectedUploaders(stateManager),
                     set: async (newValue: string[]) =>
                       await stateManager.store("uploaders_selected", newValue),
@@ -406,7 +418,7 @@ export const groupSettings = (
                 App.createDUIInputField({
                   id: "uploader_input",
                   label: "Group Name",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getUploaderInput(stateManager),
                     set: async (newValue: string) =>
                       await stateManager.store("uploader_input", newValue),
@@ -617,7 +629,7 @@ export const tagFilterSettings = (
             id: `tag_filter_select_${categoryId}`,
             label,
             options,
-            value: App.createDUIBinding({
+            value: createRetainedBinding({
               get: async () => {
                 const all = await getTagBlacklist(stateManager);
                 return all.filter((id) => options.includes(id));
@@ -649,7 +661,7 @@ export const tagFilterSettings = (
                 App.createDUISwitch({
                   id: "tag_filter_enabled",
                   label: "Enable Tag Filter",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getTagFilterEnabled(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("tag_filter_enabled", newValue),
@@ -658,7 +670,7 @@ export const tagFilterSettings = (
                 App.createDUISwitch({
                   id: "tag_whitelist_mode",
                   label: "Enable Whitelist Mode",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getTagWhitelistMode(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("tag_whitelist_mode", newValue),
@@ -667,7 +679,7 @@ export const tagFilterSettings = (
                 App.createDUISwitch({
                   id: "tag_and_mode",
                   label: "AND Mode",
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getTagAndMode(stateManager),
                     set: async (newValue: boolean) =>
                       await stateManager.store("tag_and_mode", newValue),
@@ -692,7 +704,7 @@ export const tagFilterSettings = (
                   id: "type_filter_select",
                   label: "Content Type",
                   options: CONTENT_TYPES.map((x) => x.id),
-                  value: App.createDUIBinding({
+                  value: createRetainedBinding({
                     get: async () => await getTypeFilter(stateManager),
                     set: async (newValue: string[]) =>
                       await stateManager.store("type_filter", newValue),

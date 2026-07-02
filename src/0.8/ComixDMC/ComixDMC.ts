@@ -83,7 +83,7 @@ function isImageRequestUrl(url: string): boolean {
 }
 
 export const ComixDMCInfo: SourceInfo = {
-  version: "1.10.1-alpha.0",
+  version: "1.10.1-alpha.1",
   name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
