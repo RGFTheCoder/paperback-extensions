@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1b1b1f" />
+    <link rel="icon" href="https://paperback.moe/pb-logo.svg" />
+    <title>Paperback Extensions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body
+    class="bg-[#1b1b1f] text-gray-200 font-[Inter] p-4 md:p-8 lg:p-12 text-center"
+  >
+    <div class="container mx-auto max-w-7xl">
+      <!-- Header -->
+      <header class="flex flex-col items-center relative mt-4">
+        <div
+          class="absolute w-28 h-28 md:w-40 md:h-40 -top-4 left-1/2 -translate-x-1/2 rounded-full"
+          style="
+            background:
+              radial-gradient(
+                circle at 30% 30%,
+                rgba(84, 120, 219, 0.4) 0%,
+                transparent 70%
+              ),
+              radial-gradient(
+                circle at 70% 70%,
+                rgba(246, 75, 75, 0.4) 0%,
+                transparent 70%
+              );
+            filter: blur(25px);
+          "
+        ></div>
+        <div class="relative z-10">
+          <img
+            class="md:max-h-32 max-h-20 rounded-lg"
+            src="https://paperback.moe/pb-logo.svg"
+            alt="Repository logo"
+          />
+        </div>
+
+        <h1 class="text-xl mt-4 md:text-3xl font-bold">Paperback Extensions</h1>
+        <p class="mt-4 max-w-xl text-gray-300">
+          Source extensions for the Paperback manga reader. Add the repository
+          for the Paperback version you're running.
+        </p>
+
+        <!-- Repository add buttons (one per Paperback-version repo) -->
+        <div
+          id="repos"
+          class="mt-6 flex flex-wrap justify-center gap-3"
+        ></div>
+      </header>
+
+      <!-- Sources -->
+      <main class="mt-12 text-left">
+        <div class="text-center mb-6">
+          <p class="font-bold text-lg">Available Sources</p>
+          <p class="text-sm text-gray-400">
+            Each source is tagged with the Paperback version it's built for.
+          </p>
+        </div>
+
+        <div
+          id="grid"
+          class="flex flex-wrap justify-center gap-6"
+        ></div>
+
+        <p id="empty" class="hidden text-center text-gray-400 mt-10">
+          No sources listed yet.
+        </p>
+      </main>
+
+      <!-- Footer -->
+      <footer class="mt-14 text-sm text-gray-500 text-center">
+        <p>
+          Source on
+          <a
+            class="text-[#5478db] hover:underline"
+            href="https://github.com/RGFTheCoder/paperback-extensions"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      // ---------------------------------------------------------------------
+      // Repository registry. To publish more, add a repo or a source entry.
+      // Each repo is a full Paperback repository (its own versioning.json).
+      //   displayName : name shown when adding the repo to Paperback
+      //   pbVersion   : Paperback version the repo targets (badge text)
+      //   path        : folder on this site containing versioning.json
+      //   sources     : the sources bundled inside that repo
+      // ---------------------------------------------------------------------
+      const REPOS = [
+        {
+          displayName: "DMC's Extensions (0.8)",
+          pbVersion: "0.8",
+          path: "unified/stable/0.8/",
+          sources: [
+            {
+              name: "Comix (DMC)",
+              version: "1.9.18",
+              icon: "unified/stable/0.8/ComixDMC/includes/icon.png",
+              description:
+                "Comix.to reader with shared image descrambling.",
+            },
+          ],
+        },
+        {
+          displayName: "DMC's Extensions (0.9)",
+          pbVersion: "0.9",
+          path: "unified/stable/0.9/",
+          sources: [
+            {
+              name: "Comix (DMC)",
+              version: "1.0.0-alpha.33",
+              icon: "unified/stable/0.9/ComixDMC/static/icon.png",
+              description:
+                "Comix.to reader with shared image descrambling.",
+            },
+          ],
+        },
+      ];
+
+      const PLACEHOLDER = "https://paperback.moe/pb-placeholder.png";
+
+      // Portable, domain-agnostic repo URL resolved against the current page.
+      function absoluteRepoUrl(path) {
+        return new URL(path, location.href).href;
+      }
+
+      function addRepoHref(displayName, path) {
+        return (
+          "paperback://addRepo?displayName=" +
+          encodeURIComponent(displayName) +
+          "&url=" +
+          encodeURIComponent(absoluteRepoUrl(path))
+        );
+      }
+
+      // Distinct badge colour per Paperback version, with a generic fallback.
+      function badgeClass(version) {
+        const map = {
+          "0.8": "bg-[#5478db]/20 text-[#8fa9ec] ring-1 ring-[#5478db]/40",
+          "0.9": "bg-[#f64b4b]/20 text-[#f79393] ring-1 ring-[#f64b4b]/40",
+        };
+        return (
+          map[version] ||
+          "bg-zinc-700/40 text-gray-300 ring-1 ring-zinc-600"
+        );
+      }
+
+      function el(tag, className, text) {
+        const n = document.createElement(tag);
+        if (className) n.className = className;
+        if (text != null) n.textContent = text;
+        return n;
+      }
+
+      function repoButton(repo) {
+        const a = el(
+          "a",
+          "addToPaperbackButton inline-block leading-7 py-2 px-4 text-white bg-[#f64b4b] border-b border-red-700 rounded-full transition-colors duration-100 hover:bg-[#f46565]",
+          "Add Paperback " + repo.pbVersion + " Repo",
+        );
+        a.href = addRepoHref(repo.displayName, repo.path);
+        a.title = repo.displayName;
+        return a;
+      }
+
+      function sourceCard(source) {
+        const card = el(
+          "div",
+          "w-full sm:w-80 shrink-0 bg-zinc-800 rounded-lg shadow-lg overflow-hidden text-left",
+        );
+
+        const head = el("div", "p-4 flex items-center gap-4 min-w-0");
+        const img = el("img", "w-12 h-12 rounded-full bg-zinc-700 object-cover shrink-0");
+        img.src = source.icon || PLACEHOLDER;
+        img.alt = source.name + " icon";
+        img.loading = "lazy";
+        img.onerror = function () {
+          this.src = PLACEHOLDER;
+          this.onerror = null;
+        };
+        const titleWrap = el("div", "min-w-0");
+        titleWrap.appendChild(
+          el("h3", "text-xl font-semibold text-gray-200 truncate", source.name),
+        );
+        head.appendChild(img);
+        head.appendChild(titleWrap);
+        card.appendChild(head);
+
+        const body = el("div", "px-4 pb-4 border-t border-zinc-700");
+        if (source.description) {
+          body.appendChild(
+            el("p", "text-gray-300 text-sm pt-3", source.description),
+          );
+        }
+
+        const badges = el("div", "flex flex-wrap gap-2 pt-3");
+        for (const b of source.support) {
+          const badge = el(
+            "span",
+            "px-2 py-1 rounded text-xs font-semibold whitespace-nowrap " +
+              badgeClass(b.pbVersion),
+            b.pbVersion + (b.version ? " · v" + b.version : ""),
+          );
+          badges.appendChild(badge);
+        }
+        body.appendChild(badges);
+
+        card.appendChild(body);
+        return card;
+      }
+
+      const reposEl = document.getElementById("repos");
+      const grid = document.getElementById("grid");
+
+      // Add-repo buttons are per Paperback-version repo.
+      for (const repo of REPOS) {
+        reposEl.appendChild(repoButton(repo));
+      }
+
+      // Collapse to one card per source, aggregating the Paperback versions
+      // (badges) that each source supports across all repos.
+      const sourceMap = new Map();
+      const sourceOrder = [];
+      for (const repo of REPOS) {
+        for (const source of repo.sources) {
+          let entry = sourceMap.get(source.name);
+          if (!entry) {
+            entry = {
+              name: source.name,
+              description: source.description,
+              icon: source.icon,
+              support: [],
+            };
+            sourceMap.set(source.name, entry);
+            sourceOrder.push(entry);
+          }
+          if (!entry.description && source.description) {
+            entry.description = source.description;
+          }
+          if (!entry.icon && source.icon) entry.icon = source.icon;
+          entry.support.push({
+            pbVersion: repo.pbVersion,
+            version: source.version,
+          });
+        }
+      }
+
+      for (const source of sourceOrder) grid.appendChild(sourceCard(source));
+
+      if (!sourceOrder.length) {
+        document.getElementById("empty").classList.remove("hidden");
+      }
+    </script>
+  </body>
+</html>
