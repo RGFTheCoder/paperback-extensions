@@ -41,6 +41,16 @@ export interface DescrambleCanvas<TOut> {
   encode(
     preferredMime: string,
   ): EncodedImage<TOut> | Promise<EncodedImage<TOut>>;
+
+  // Decoded RGBA pixels of the *source* image (row-major, top-down, length
+  // width*height*4), for content-based solvers like "adaptive". Optional because
+  // not every platform can read pixels back cheaply (0.8 must re-encode to PNG
+  // and decode it), and it's only called when adaptive is selected. Backends
+  // that can't provide pixels omit this; the caller then skips adaptive.
+  getSourcePixels?():
+    | Uint8Array
+    | Uint8ClampedArray
+    | Promise<Uint8Array | Uint8ClampedArray>;
 }
 
 // Constructs a `DescrambleCanvas` from raw scrambled image bytes. `TRaw` is the

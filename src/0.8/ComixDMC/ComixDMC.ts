@@ -66,8 +66,8 @@ import {
 import {
   autoSchemeFromAlgo,
   descrambleImage,
+  type DescrambleMode,
   readScrambleHeaders,
-  type ScrambleScheme,
 } from "../../../shared/descramble/descramble.ts";
 import { pbCanvasBackend } from "./CanvasBackend.ts";
 
@@ -80,7 +80,7 @@ function isImageRequestUrl(url: string): boolean {
 }
 
 export const ComixDMCInfo: SourceInfo = {
-  version: "1.10.0-alpha.2",
+  version: "1.10.0-alpha.3",
   name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
@@ -139,19 +139,19 @@ export class ComixDMC extends Source
         const scr = readScrambleHeaders(response.headers);
         if (scr) {
           try {
-            // Resolve the permutation scheme: a user override (debug setting) wins,
-            // otherwise the header-driven default dispatch. The LCG scheme is now
-            // available here too (shared with 0.9), so pages the legacy dispatch
-            // couldn't handle can be cleared by forcing "lcg" in settings.
+            // Resolve the permutation mode: a user override (debug setting) wins,
+            // otherwise the header-driven default dispatch. "none" shows the raw
+            // scrambled page; "adaptive" reconstructs from pixel content.
             const override = await getDescrambleScheme(this.stateManager);
-            const scheme: ScrambleScheme = override ??
+            if (override === "none") return response; // show scrambled as-is
+            const mode: DescrambleMode = override ??
               autoSchemeFromAlgo(scr.algo, scr.cols, scr.rows);
             const { data, mime } = await descrambleImage(
               response.rawData,
               scr,
               "image/webp",
               pbCanvasBackend,
-              scheme,
+              mode,
             );
             (response as unknown as { rawData: unknown }).rawData = data;
             (response as unknown as { mimeType: string }).mimeType = mime;
@@ -168,7 +168,7 @@ export class ComixDMC extends Source
                 cols: scr.cols,
                 rows: scr.rows,
                 algo: scr.algo,
-                scheme,
+                scheme: mode,
                 mime,
               });
             }

@@ -25,8 +25,8 @@ import {
 } from "./models.ts";
 import {
   descrambleImage,
+  type DescrambleMode,
   readScrambleHeaders,
-  type ScrambleScheme,
 } from "../../../shared/descramble/descramble.ts";
 import { domCanvasBackend } from "./utils/canvasBackend.ts";
 import { getDescrambleScheme } from "./forms/settings.ts";
@@ -67,15 +67,17 @@ export class ComixInterceptor extends PaperbackInterceptor {
 
     try {
       // 0.9 default is the LCG scheme; a user override (debug setting) can force
-      // another for on-device testing.
+      // another for on-device testing. "none" shows the raw scrambled page;
+      // "adaptive" reconstructs from pixel content.
       const override = getDescrambleScheme();
-      const scheme: ScrambleScheme = override ?? "lcg";
+      if (override === "none") return data; // show scrambled as-is
+      const mode: DescrambleMode = override ?? "lcg";
       const result = await descrambleImage(
         data,
         scrambleParams,
         response.mimeType ?? "image/webp",
         domCanvasBackend,
-        scheme,
+        mode,
       );
       return result.data;
     } catch (error) {

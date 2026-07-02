@@ -15,6 +15,7 @@ import type {
   DescrambleCanvas,
   EncodedImage,
 } from "../../../shared/descramble/descramble.ts";
+import { decodePng } from "../../../shared/descramble/png.ts";
 
 class PBDescrambleCanvas implements DescrambleCanvas<RawData> {
   readonly width: number;
@@ -37,6 +38,20 @@ class PBDescrambleCanvas implements DescrambleCanvas<RawData> {
     dy: number,
   ): void {
     this.canvas.drawImage(this.src, sx, sy, sw, sh, dx, dy);
+  }
+
+  // Decode the *source* to RGBA for the adaptive solver. 0.8 exposes no pixel
+  // readback, so we re-encode the untouched source to PNG (lossless) on a scratch
+  // canvas and inflate it in pure JS. Called once per page only when adaptive is
+  // selected, before any drawTile mutates the destination.
+  getSourcePixels(): Uint8Array {
+    const scratch = App.createPBCanvas();
+    scratch.setSize(this.width, this.height);
+    scratch.drawImage(this.src, 0, 0, this.width, this.height, 0, 0);
+    const png = scratch.encode("image/png");
+    if (!png) throw new Error("PBCanvas.encode(png) returned no data");
+    const { data } = decodePng(App.createByteArray(png));
+    return data;
   }
 
   encode(_preferredMime: string): EncodedImage<RawData> {

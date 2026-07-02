@@ -90,6 +90,11 @@ class DomDescrambleCanvas implements DescrambleCanvas<ArrayBuffer> {
     }
   }
 
+  // Standard Y-down RGBA of the source; the adaptive solver reads tile edges.
+  getSourcePixels(): Uint8ClampedArray {
+    return this.srcStd;
+  }
+
   encode(preferredMime: string): EncodedImage<ArrayBuffer> {
     // Flip the standard Y-down destination back to the polyfill's Y-up layout,
     // then write it and re-encode to the requested MIME (same as the input).

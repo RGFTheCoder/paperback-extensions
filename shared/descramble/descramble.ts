@@ -14,6 +14,7 @@ import {
   parseScrambleGrid,
   type ScrambleScheme,
 } from "./permutation.ts";
+import { solveAdaptiveLookup } from "./adaptive.ts";
 import type { CanvasBackend, EncodedImage } from "./canvas.ts";
 
 export type { ScrambleScheme } from "./permutation.ts";
@@ -22,6 +23,12 @@ export type {
   DescrambleCanvas,
   EncodedImage,
 } from "./canvas.ts";
+
+// How the caller wants the permutation resolved. The seed-driven schemes invert
+// Comix's exact Fisher-Yates; "adaptive" ignores the seed and reconstructs from
+// pixel content (see ./adaptive.ts). ("none" — pass the scrambled page through —
+// is handled by callers before they reach the orchestrator.)
+export type DescrambleMode = ScrambleScheme | "adaptive";
 export interface ScrambleParams {
   seed: number;
   cols: number;
@@ -80,15 +87,17 @@ export function autoSchemeFromAlgo(
   return algo === 3 && cols === 5 && rows === 5 ? "gf2affine" : "xorshift";
 }
 
-// Reassemble the clean image. `scheme` is resolved by the caller (from the
+// Reassemble the clean image. `mode` is resolved by the caller (from the
 // platform default and/or a user "descramble scheme" setting), so this stays
-// backend- and platform-agnostic.
+// backend- and platform-agnostic. For "adaptive" the backend must expose
+// `getSourcePixels`; if it can't, that's surfaced as an error the caller catches
+// (and passes the page through untouched).
 export async function descrambleImage<TRaw, TOut>(
   data: TRaw,
   params: ScrambleParams,
   preferredMime: string,
   backend: CanvasBackend<TRaw, TOut>,
-  scheme: ScrambleScheme,
+  mode: DescrambleMode,
 ): Promise<EncodedImage<TOut>> {
   const canvas = await backend.fromImage(data, preferredMime);
   const { width, height } = canvas;
@@ -102,10 +111,19 @@ export async function descrambleImage<TRaw, TOut>(
     );
   }
 
-  // The effective Fisher-Yates seed is the X-Scramble-Seed XORed with the
-  // X-Scramble-Hash constant (0 when the header is absent/unknown).
-  const effSeed = (seed ^ seedHashXor) >>> 0;
-  const lookup = computeDescrambleLookup(scheme, effSeed, cols * rows);
+  let lookup: number[];
+  if (mode === "adaptive") {
+    if (!canvas.getSourcePixels) {
+      throw new Error("adaptive descramble unsupported on this platform");
+    }
+    const pixels = await canvas.getSourcePixels();
+    lookup = solveAdaptiveLookup(pixels, width, height, cols, rows);
+  } else {
+    // The effective Fisher-Yates seed is the X-Scramble-Seed XORed with the
+    // X-Scramble-Hash constant (0 when the header is absent/unknown).
+    const effSeed = (seed ^ seedHashXor) >>> 0;
+    lookup = computeDescrambleLookup(mode, effSeed, cols * rows);
+  }
 
   for (let i = 0; i < lookup.length; i++) {
     const cleanRow = (i / cols) | 0;

@@ -14,7 +14,11 @@ import {
   CONTENT_TYPES,
 } from "./Common.ts";
 import { signUrl } from "./ComixHash.ts";
-import type { ScrambleScheme } from "../../../shared/descramble/descramble.ts";
+import type { DescrambleMode } from "../../../shared/descramble/descramble.ts";
+
+// A resolved descramble setting: a concrete mode, "none" (show scrambled), or
+// null to keep the header-driven "auto" dispatch.
+export type DescrambleSetting = DescrambleMode | "none" | null;
 
 interface TagCache {
   genre: APIGenreItem[];
@@ -34,10 +38,13 @@ export const TRENDING_OPTIONS = [
 ];
 
 // Tile-descramble permutation schemes, exposed as a debug override. "auto" keeps
-// the header-driven dispatch (the shipping default); the others force one scheme
-// so a user can confirm which one clears an occasionally-scrambled page.
+// the header-driven dispatch (the shipping default); "none" shows the raw
+// scrambled page; "adaptive" reconstructs from pixel content (ignores the seed);
+// the rest force one seed-driven scheme so a user can confirm which clears a page.
 export const DESCRAMBLE_SCHEME_OPTIONS = [
   { id: "auto", label: "Auto (header)" },
+  { id: "none", label: "No descramble" },
+  { id: "adaptive", label: "Adaptive (content)" },
   { id: "lcg", label: "LCG (ranqd1)" },
   { id: "xorshift", label: "xorshift32" },
   { id: "gf2affine", label: "GF(2)-affine" },
@@ -93,16 +100,19 @@ export const getTrendingLimit = async (
   return val ?? ["30"];
 };
 
-// Returns the forced tile-descramble scheme, or null to keep header dispatch.
+// Returns the forced tile-descramble setting, or null to keep header dispatch.
 export const getDescrambleScheme = async (
   stateManager: SourceStateManager,
-): Promise<ScrambleScheme | null> => {
+): Promise<DescrambleSetting> => {
   const val = await stateManager.retrieve("descramble_scheme") as
     | string[]
     | string
     | null;
   const id = Array.isArray(val) ? val[0] : val;
-  if (id === "lcg" || id === "xorshift" || id === "gf2affine") return id;
+  if (
+    id === "lcg" || id === "xorshift" || id === "gf2affine" ||
+    id === "adaptive" || id === "none"
+  ) return id;
   return null; // "auto" / unset → header dispatch
 };
 

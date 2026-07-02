@@ -18,26 +18,37 @@ import {
 
 import type { ComixFilter } from "../utils/filter.ts";
 import { discoverySections } from "../utils/filter.ts";
-import type { ScrambleScheme } from "../../../../shared/descramble/descramble.ts";
+import type {
+  DescrambleMode,
+} from "../../../../shared/descramble/descramble.ts";
+
+// A resolved descramble setting: a concrete mode, "none" (show scrambled), or
+// null to keep the 0.9 default (LCG).
+export type DescrambleSetting = DescrambleMode | "none" | null;
 
 // Tile-descramble scheme override, exposed for on-device testing. "auto" keeps the
-// 0.9 default (LCG); the others force one scheme so a user can confirm which one
-// clears an occasionally-scrambled page.
+// 0.9 default (LCG); "none" shows the raw scrambled page; "adaptive" reconstructs
+// from pixel content (ignores the seed); the rest force one seed-driven scheme.
 export const DESCRAMBLE_SCHEME_ITEMS = [
   { id: "auto", title: "Auto (LCG)" },
+  { id: "none", title: "No descramble" },
+  { id: "adaptive", title: "Adaptive (content)" },
   { id: "lcg", title: "LCG (ranqd1)" },
   { id: "xorshift", title: "xorshift32" },
   { id: "gf2affine", title: "GF(2)-affine" },
 ];
 
-// Returns the forced tile-descramble scheme, or null to keep the default (LCG).
-export function getDescrambleScheme(): ScrambleScheme | null {
+// Returns the forced tile-descramble setting, or null to keep the default (LCG).
+export function getDescrambleScheme(): DescrambleSetting {
   const val = Application.getState("descramble_scheme") as
     | string[]
     | string
     | undefined;
   const id = Array.isArray(val) ? val[0] : val;
-  if (id === "lcg" || id === "xorshift" || id === "gf2affine") return id;
+  if (
+    id === "lcg" || id === "xorshift" || id === "gf2affine" ||
+    id === "adaptive" || id === "none"
+  ) return id;
   return null; // "auto" / unset → default scheme
 }
 
