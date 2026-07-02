@@ -1,4 +1,4 @@
-import {
+import type {
   Chapter,
   ChapterDetails,
   PartialSourceManga,
@@ -6,10 +6,10 @@ import {
   TagSection,
 } from "@paperback/types-0.8";
 import {
-  APIChapterItem,
-  APIGenreItem,
-  APIMangaItem,
-  APIPagesResult,
+  type APIChapterItem,
+  type APIGenreItem,
+  type APIMangaItem,
+  type APIPagesResult,
   isRatingAllowed,
   normalizeString,
   parseRelativeTime,

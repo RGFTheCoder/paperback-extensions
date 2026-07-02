@@ -108,7 +108,7 @@ export class ComixApi {
     return JSON.parse(html) as ApiResponse<T>;
   }
 
-  async getJsonMangaTopApi(section: string): Promise<ApiResponse<MangaItem[]>> {
+  getJsonMangaTopApi(section: string): Promise<ApiResponse<MangaItem[]>> {
     const hiddenGenres = [
       ...this.filter.getHiddenGenresSettings(),
       ...this.filter.getHiddenDemogSettings(),
@@ -141,14 +141,16 @@ export class ComixApi {
       },
     };
     const config = sections[section];
-    if (!config) throw new Error(`${section} not found on API`);
+    if (!config) {
+      return Promise.reject(new Error(`${section} not found on API`));
+    }
     return this.APIJson<MangaItem[]>({
       path: config.path,
       query: config.query,
     });
   }
 
-  async getJsonMangaApi(
+  getJsonMangaApi(
     section: string,
     page: number,
   ): Promise<ApiResponse<ResultManga>> {
@@ -245,7 +247,9 @@ export class ComixApi {
       },
     };
     const config = sections[section];
-    if (!config) throw new Error(`${section} not found on API`);
+    if (!config) {
+      return Promise.reject(new Error(`${section} not found on API`));
+    }
     return this.APIJson<ResultManga>({
       path: config.path,
       query: config.query,
@@ -261,7 +265,7 @@ export class ComixApi {
     return Application.arrayBufferToUTF8String(data[1]);
   }
 
-  async getJsonMangaInfoApi(mangaId: string) {
+  getJsonMangaInfoApi(mangaId: string) {
     return this.APIJson<MangaItem>({
       path: ["manga", mangaId],
       query: {
@@ -270,14 +274,14 @@ export class ComixApi {
     });
   }
 
-  async getJsonChapterApi(
+  getJsonChapterApi(
     mangaId: string,
     cookieStorageInterceptor: CookieStorageInterceptor,
   ): Promise<ChapterItem[]> {
     return chapterListViaWebView(mangaId, cookieStorageInterceptor);
   }
 
-  async getJsonSearchApi(
+  getJsonSearchApi(
     keyword: string,
     page: number,
     filters: Filters[],
@@ -317,7 +321,7 @@ export class ComixApi {
     return JSON.parse(payload) as ApiResponse<ChapterPages>;
   }
 
-  async getFiltersApi(filter: string) {
+  getFiltersApi(filter: string) {
     return this.APIJson<Filter[]>({
       path: "tags/search",
       query: {

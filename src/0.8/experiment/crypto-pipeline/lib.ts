@@ -16,7 +16,11 @@ type Stage = {
   key: Uint8Array;
   iv: number;
 };
-type Interceptor = (x: any) => any;
+type InterceptorResult =
+  | { params?: { _?: string }; data?: unknown }
+  | null
+  | undefined;
+type Interceptor = (x: Record<string, unknown>) => InterceptorResult;
 
 export type ConstantsStage = { sboxB64: string; keyB64: string; iv: number };
 export type Constants = {
@@ -78,7 +82,7 @@ function buildSandbox(cfg: string, traces: Traces) {
     Object.defineProperty(querySelectorAll, "toString", {
       value: () => "function querySelectorAll() { [native code] }",
     });
-  } catch {}
+  } catch { /* querySelectorAll shim is optional */ }
 
   const realAtob = (s: string) => Buffer.from(s, "base64").toString("binary");
   class TracingTextDecoder {
@@ -97,7 +101,7 @@ function buildSandbox(cfg: string, traces: Traces) {
     }
   }
 
-  const b: any = {
+  const b: Record<string, unknown> = {
     document: {
       querySelector,
       querySelectorAll,

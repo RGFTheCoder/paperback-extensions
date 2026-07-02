@@ -25,7 +25,7 @@ import {
 const CONSTANTS = resolve(ROOT, "experiment/crypto-pipeline/constants.json");
 
 // Deno runs TS natively — just dynamic-import the file directly.
-async function importTs(tsPath: string) {
+function importTs(tsPath: string) {
   return import(pathToFileURL(tsPath).href);
 }
 

@@ -43,7 +43,7 @@
     "bundle:0.9": "deno run --allow-read --allow-write --allow-env --allow-run --allow-net tools/0.9/bundle.ts",
     "bundle": "deno task bundle:0.8 && deno task bundle:0.9",
     "test": "deno run --allow-read --allow-write --allow-env --allow-run --allow-net --allow-sys tools/0.9/test.ts",
-    "conformance": "deno fmt --check && deno task check",
+    "conformance": "deno fmt --check && deno task check && deno lint shared/ src/ tools/",
     "crypto:pipeline": "deno run -A src/0.8/experiment/crypto-pipeline/run.ts",
     "crypto:refresh": "deno run -A src/0.8/experiment/RefreshComixBundle.ts"
   }

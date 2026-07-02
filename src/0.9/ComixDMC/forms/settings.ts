@@ -49,14 +49,16 @@ function getDeletedDiscoverySections() {
   );
 }
 
-async function setDiscoverySections(newValue: { id: string; title: string }[]) {
+function setDiscoverySections(newValue: { id: string; title: string }[]) {
   Application.setState(newValue, "sections");
+  return Promise.resolve();
 }
 
-async function setDeletedDiscoverySections(
+function setDeletedDiscoverySections(
   newValue: { id: string; title: string }[],
 ) {
   Application.setState(newValue, "deleted_sections");
+  return Promise.resolve();
 }
 
 export function getDiscoverySectionsOrder() {
@@ -69,10 +71,11 @@ export function getDiscoverySectionsOrder() {
 }
 
 abstract class BaseSettings extends Form {
-  protected async updateValue<T>(value: T, id: string): Promise<void> {
+  protected updateValue<T>(value: T, id: string): Promise<void> {
     Application.setState(value, id);
     Application.invalidateDiscoverSections();
     this.reloadForm();
+    return Promise.resolve();
   }
 }
 
@@ -115,13 +118,15 @@ class EditableListTestForm extends Form {
       ]),
     ];
   }
-  async resetFiltersDialog() {
-    throw new FormConfirmationError(
-      Application.Selector(
-        this as EditableListTestForm,
-        "handleLimitStatusChangeReset",
+  resetFiltersDialog() {
+    return Promise.reject(
+      new FormConfirmationError(
+        Application.Selector(
+          this as EditableListTestForm,
+          "handleLimitStatusChangeReset",
+        ),
+        "Do you want to restore all deleted sections?",
       ),
-      "Do you want to restore all deleted sections?",
     );
   }
   async handleLimitStatusChangeReset(): Promise<void> {
@@ -180,7 +185,7 @@ class AddSectionSelect {
           await target["onSelect"](rowId);
         };
       } else {
-        // @ts-ignore
+        // @ts-ignore: dynamic proxy access by arbitrary property key
         return target[p];
       }
     },
@@ -277,9 +282,10 @@ export class MainSettings extends BaseSettings {
     this.reloadForm();
   }
 
-  async handleDescrambleSchemeChange(id: string[]) {
+  handleDescrambleSchemeChange(id: string[]) {
     Application.setState(id, "descramble_scheme");
     this.reloadForm();
+    return Promise.resolve();
   }
 }
 
@@ -436,13 +442,15 @@ class SectionSettings extends BaseSettings {
     Application.invalidateDiscoverSections();
     await this.updateValue(id, "limit");
   }
-  async resetFiltersDialog() {
-    throw new FormConfirmationError(
-      Application.Selector(
-        this as SectionSettings,
-        "handleLimitStatusChangeReset",
+  resetFiltersDialog() {
+    return Promise.reject(
+      new FormConfirmationError(
+        Application.Selector(
+          this as SectionSettings,
+          "handleLimitStatusChangeReset",
+        ),
+        "Do you want to reset this to the default value?",
       ),
-      "Do you want to reset this to the default value?",
     );
   }
   async handleLimitStatusChangeReset(): Promise<void> {
@@ -606,10 +614,12 @@ class FilterSettings extends BaseSettings {
     Application.invalidateDiscoverSections();
     await this.updateValue(id, "show_only");
   }
-  async resetFiltersDialog() {
-    throw new FormConfirmationError(
-      Application.Selector(this as FilterSettings, "resetFilters"),
-      "Do you want to reset all values?",
+  resetFiltersDialog() {
+    return Promise.reject(
+      new FormConfirmationError(
+        Application.Selector(this as FilterSettings, "resetFilters"),
+        "Do you want to reset all values?",
+      ),
     );
   }
   async resetFilters() {

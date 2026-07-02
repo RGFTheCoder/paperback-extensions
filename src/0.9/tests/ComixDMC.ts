@@ -1,4 +1,4 @@
-import { type TestLogger } from "@paperback/types-0.9";
+import type { TestLogger } from "@paperback/types-0.9";
 
 import { ComixDMC } from "../ComixDMC/main.ts";
 import sourceInfo from "../ComixDMC/pbconfig.ts";

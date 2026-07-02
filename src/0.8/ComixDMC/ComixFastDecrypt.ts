@@ -131,17 +131,18 @@ function normalizeHeaders(
  */
 export function fastDecryptComixPayload(
   rawPath: string,
-  payload: any,
+  payload: unknown,
   headers: Record<string, string> = {},
-): any {
+): unknown {
   void rawPath;
   if (
-    !(payload && typeof payload === "object" && typeof payload.e === "string")
+    !(payload && typeof payload === "object" &&
+      typeof (payload as { e?: unknown }).e === "string")
   ) return payload;
   const h = normalizeHeaders(headers);
   if (h["x-enc"] && h["x-enc"] !== "1") return payload;
 
-  let data = b64Decode(payload.e);
+  let data = b64Decode((payload as { e: string }).e);
   for (const stage of DECRYPT_STAGES) {
     data = decryptRound(data, stage.sboxB64, stage.keyB64, stage.iv);
   }

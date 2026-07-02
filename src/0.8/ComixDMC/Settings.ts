@@ -1,4 +1,4 @@
-import {
+import type {
   DUIButton,
   DUINavigationButton,
   RequestManager,
@@ -7,9 +7,9 @@ import {
 
 import {
   API_BASE,
-  APIGenreItem,
-  APIGenreResult,
-  APIResponse,
+  type APIGenreItem,
+  type APIGenreResult,
+  type APIResponse,
   CONTENT_RATINGS,
   CONTENT_TYPES,
 } from "./Common.ts";
@@ -44,11 +44,16 @@ export const DESCRAMBLE_SCHEME_OPTIONS = [
 ];
 
 // Helper to prevent JS GC from destroying UI closures before iOS runs them
-const uiKeepAlive: any[] = [];
+const uiKeepAlive: unknown[] = [];
 export const keepAlive = <T>(obj: T): T => {
   uiKeepAlive.push(obj);
   return obj;
 };
+
+// Same as keepAlive, but resolves to the value — for DUI thunks (sections/rows)
+// whose type requires a Promise-returning callback.
+const keepAliveAsync = <T>(obj: T): Promise<T> =>
+  Promise.resolve(keepAlive(obj));
 
 // One-shot warm-up: runs once on first groupSettings render, skipped on all subsequent re-renders.
 // Pre-loads all values so the form renders with real data immediately.
@@ -149,8 +154,8 @@ export const contentSettings = (
     id: "content_settings",
     label: "Extension Settings",
     form: App.createDUIForm({
-      sections: async () =>
-        keepAlive([
+      sections: () =>
+        keepAliveAsync([
           // 1. Home Page Settings
           App.createDUISection({
             id: "home_settings",
@@ -158,8 +163,8 @@ export const contentSettings = (
             footer:
               "Adjust the time range for trending media on the Discover page.",
             isHidden: false,
-            rows: async () =>
-              keepAlive([
+            rows: () =>
+              keepAliveAsync([
                 App.createDUISelect({
                   id: "trending_limit",
                   label: "Trending Timeframe",
@@ -170,9 +175,11 @@ export const contentSettings = (
                       await stateManager.store("trending_limit", newValue),
                   }),
                   allowsMultiselect: false,
-                  labelResolver: async (value: string) => {
-                    return TRENDING_OPTIONS.find((opt) => opt.id === value)
-                      ?.label ?? value;
+                  labelResolver: (value: string) => {
+                    return Promise.resolve(
+                      TRENDING_OPTIONS.find((opt) => opt.id === value)
+                        ?.label ?? value,
+                    );
                   },
                 }),
               ]),
@@ -184,8 +191,8 @@ export const contentSettings = (
             footer:
               "Items with the selected rating or tamer are shown. Anything more explicit is hidden.",
             isHidden: false,
-            rows: async () =>
-              keepAlive([
+            rows: () =>
+              keepAliveAsync([
                 App.createDUISelect({
                   id: "content_rating_max",
                   label: "Maximum Content Rating",
@@ -196,9 +203,11 @@ export const contentSettings = (
                       await stateManager.store("content_rating_max", newValue),
                   }),
                   allowsMultiselect: false,
-                  labelResolver: async (value: string) => {
-                    return CONTENT_RATINGS.find((r) => r.id === value)?.label ??
-                      value;
+                  labelResolver: (value: string) => {
+                    return Promise.resolve(
+                      CONTENT_RATINGS.find((r) => r.id === value)?.label ??
+                        value,
+                    );
                   },
                 }),
               ]),
@@ -210,8 +219,8 @@ export const contentSettings = (
             footer:
               "Force the tile-descramble permutation scheme. Leave on Auto unless a page renders scrambled; then try each scheme to find the one that clears it.",
             isHidden: false,
-            rows: async () =>
-              keepAlive([
+            rows: () =>
+              keepAliveAsync([
                 App.createDUISelect({
                   id: "descramble_scheme",
                   label: "Descramble Scheme",
@@ -224,9 +233,11 @@ export const contentSettings = (
                       await stateManager.store("descramble_scheme", newValue),
                   }),
                   allowsMultiselect: false,
-                  labelResolver: async (value: string) =>
-                    DESCRAMBLE_SCHEME_OPTIONS.find((o) => o.id === value)
-                      ?.label ?? value,
+                  labelResolver: (value: string) =>
+                    Promise.resolve(
+                      DESCRAMBLE_SCHEME_OPTIONS.find((o) => o.id === value)
+                        ?.label ?? value,
+                    ),
                 }),
               ]),
           }),
@@ -252,8 +263,8 @@ export const groupSettings = (
             footer:
               "By default, listed groups are excluded from chapter lists (blacklist mode). Turn off Strict Matching to catch partial names.",
             isHidden: false,
-            rows: async () =>
-              keepAlive([
+            rows: () =>
+              keepAliveAsync([
                 App.createDUISwitch({
                   id: "toggle_uploaders_filtering",
                   label: "Enable Group Filtering",
@@ -307,7 +318,7 @@ export const groupSettings = (
                     set: async (newValue: string[]) =>
                       await stateManager.store("uploaders_selected", newValue),
                   }),
-                  labelResolver: async (value) => value,
+                  labelResolver: (value: string) => Promise.resolve(value),
                   allowsMultiselect: true,
                 }),
                 App.createDUIInputField({
@@ -508,7 +519,7 @@ export const tagFilterSettings = (
               footer:
                 "Failed to load tags. Please close and re-open this menu to retry.",
               isHidden: false,
-              rows: async () => keepAlive([]),
+              rows: () => keepAliveAsync([]),
             }),
           ]);
         }
@@ -538,8 +549,8 @@ export const tagFilterSettings = (
                 ]);
               },
             }),
-            labelResolver: async (value: string) =>
-              labelMap.get(value) ?? value,
+            labelResolver: (value: string) =>
+              Promise.resolve(labelMap.get(value) ?? value),
             allowsMultiselect: true,
           }));
         };
@@ -551,8 +562,8 @@ export const tagFilterSettings = (
             footer:
               "Blacklist (default): hide titles that match any checked item. Whitelist: show only titles that match. AND Mode: require all checked tags to match instead of any (whitelist mode only — ignored in blacklist mode).",
             isHidden: false,
-            rows: async () =>
-              keepAlive([
+            rows: () =>
+              keepAliveAsync([
                 App.createDUISwitch({
                   id: "tag_filter_enabled",
                   label: "Enable Tag Filter",
@@ -593,8 +604,8 @@ export const tagFilterSettings = (
             footer:
               "Checked items will be filtered from Discovery and Search results per the mode above.",
             isHidden: false,
-            rows: async () =>
-              keepAlive([
+            rows: () =>
+              keepAliveAsync([
                 keepAlive(App.createDUISelect({
                   id: "type_filter_select",
                   label: "Content Type",
@@ -604,8 +615,10 @@ export const tagFilterSettings = (
                     set: async (newValue: string[]) =>
                       await stateManager.store("type_filter", newValue),
                   }),
-                  labelResolver: async (value: string) =>
-                    CONTENT_TYPES.find((x) => x.id === value)?.label ?? value,
+                  labelResolver: (value: string) =>
+                    Promise.resolve(
+                      CONTENT_TYPES.find((x) => x.id === value)?.label ?? value,
+                    ),
                   allowsMultiselect: true,
                 })),
                 makeSelect("genre", "Genres", cache.genre),

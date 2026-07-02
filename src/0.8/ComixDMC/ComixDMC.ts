@@ -1,24 +1,24 @@
 import {
   BadgeColor,
-  Chapter,
-  ChapterDetails,
-  ChapterProviding,
+  type Chapter,
+  type ChapterDetails,
+  type ChapterProviding,
   ContentRating,
-  DUISection,
-  HomePageSectionsProviding,
-  HomeSection,
+  type DUISection,
+  type HomePageSectionsProviding,
+  type HomeSection,
   HomeSectionType,
-  MangaProviding,
-  PagedResults,
-  Request,
-  Response,
-  SearchRequest,
-  SearchResultsProviding,
+  type MangaProviding,
+  type PagedResults,
+  type Request,
+  type Response,
+  type SearchRequest,
+  type SearchResultsProviding,
   Source,
-  SourceInfo,
+  type SourceInfo,
   SourceIntents,
-  SourceManga,
-  TagSection,
+  type SourceManga,
+  type TagSection,
 } from "@paperback/types-0.8";
 
 import { Parser } from "./Parser.ts";
@@ -27,11 +27,11 @@ import { emit } from "../lib/telemetry.ts";
 import { DEBUG, debugLog } from "../lib/debug-log.ts";
 import {
   API_BASE,
-  APIChapterResult,
-  APIGenreResult,
-  APIMangaResult,
-  APIPagesResult,
-  APIResponse,
+  type APIChapterResult,
+  type APIGenreResult,
+  type APIMangaResult,
+  type APIPagesResult,
+  type APIResponse,
   CONTENT_TYPES,
   DOMAIN,
   normalizeString,
@@ -80,7 +80,7 @@ function isImageRequestUrl(url: string): boolean {
 }
 
 export const ComixDMCInfo: SourceInfo = {
-  version: "1.9.18",
+  version: "1.10.0-alpha.1",
   name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
@@ -123,8 +123,8 @@ export class ComixDMC extends Source
           debugLog("img_req", {
             url: request.url,
             headerKeys: Object.keys(request.headers ?? {}),
-            origin: (request.headers as any)?.["Origin"] ??
-              (request.headers as any)?.["origin"] ?? null,
+            origin: (request.headers as Record<string, string>)?.["Origin"] ??
+              (request.headers as Record<string, string>)?.["origin"] ?? null,
           });
         }
         return request;
@@ -153,11 +153,13 @@ export class ComixDMC extends Source
               pbCanvasBackend,
               scheme,
             );
-            (response as any).rawData = data;
-            (response as any).mimeType = mime;
+            (response as unknown as { rawData: unknown }).rawData = data;
+            (response as unknown as { mimeType: string }).mimeType = mime;
             if (response.headers) {
-              (response.headers as any)["content-type"] = mime;
-              (response.headers as any)["Content-Type"] = mime;
+              (response.headers as Record<string, string>)["content-type"] =
+                mime;
+              (response.headers as Record<string, string>)["Content-Type"] =
+                mime;
             }
             if (DEBUG) {
               debugLog("img_descramble", {
@@ -170,14 +172,17 @@ export class ComixDMC extends Source
                 mime,
               });
             }
-          } catch (error: any) {
+          } catch (error) {
+            const message = error instanceof Error
+              ? error.message
+              : String(error);
             if (DEBUG) {
               debugLog("img_descramble_error", {
-                error: error?.message ?? String(error),
+                error: message,
               });
             }
             console.log(
-              `[ComixDMC] descramble error: ${error?.message ?? String(error)}`,
+              `[ComixDMC] descramble error: ${message}`,
             );
           }
           return response;
@@ -209,16 +214,17 @@ export class ComixDMC extends Source
               riff,
             });
           }
-        } catch (error: any) {
+        } catch (error) {
+          const message = error instanceof Error
+            ? error.message
+            : String(error);
           if (DEBUG) {
             debugLog("img_decrypt_error", {
-              error: error?.message ?? String(error),
+              error: message,
             });
           }
           console.log(
-            `[ComixDMC] image decrypt error: ${
-              error?.message ?? String(error)
-            }`,
+            `[ComixDMC] image decrypt error: ${message}`,
           );
         }
 
@@ -229,24 +235,24 @@ export class ComixDMC extends Source
 
   // -- Capabilities --
 
-  override async supportsTagExclusion(): Promise<boolean> {
-    return true;
+  override supportsTagExclusion(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   // -- Settings Menu --
-  override async getSourceMenu(): Promise<DUISection> {
-    return keepAlive(App.createDUISection({
+  override getSourceMenu(): Promise<DUISection> {
+    return Promise.resolve(keepAlive(App.createDUISection({
       id: "main",
       header: "Source Settings",
       isHidden: false,
-      rows: async () =>
-        keepAlive([
+      rows: () =>
+        Promise.resolve(keepAlive([
           contentSettings(this.stateManager),
           groupSettings(this.stateManager),
           tagFilterSettings(this.stateManager, this.requestManager),
           resetSettings(this.stateManager),
-        ]),
-    }));
+        ])),
+    })));
   }
 
   // Build the URL fragment that applies the user's saved tag/type filter to a /manga or
@@ -350,7 +356,7 @@ export class ComixDMC extends Source
       )
       : [];
 
-    const chapters: any[] = [
+    const chapters = [
       ...firstResult.items,
       ...restResults.flatMap((r) => r.items),
     ];
@@ -502,7 +508,7 @@ export class ComixDMC extends Source
 
   override async getViewMoreItems(
     homepageSectionId: string,
-    metadata: any,
+    metadata: { page?: number } | undefined,
   ): Promise<PagedResults> {
     const page = metadata?.page ?? 1;
     const limitArray = await getTrendingLimit(this.stateManager);
@@ -567,7 +573,10 @@ export class ComixDMC extends Source
   // -- Advanced Search --
 
   override async getSearchTags(): Promise<TagSection[]> {
-    let genres: any[], themes: any[], formats: any[], demographics: any[];
+    let genres: APIGenreResult,
+      themes: APIGenreResult,
+      formats: APIGenreResult,
+      demographics: APIGenreResult;
 
     const cached = await getCachedTags(this.stateManager);
     if (cached) {
@@ -674,7 +683,7 @@ export class ComixDMC extends Source
 
   async getSearchResults(
     query: SearchRequest,
-    metadata: any,
+    metadata: { page?: number } | undefined,
   ): Promise<PagedResults> {
     const page = metadata?.page ?? 1;
 
@@ -782,7 +791,9 @@ export class ComixDMC extends Source
       (headers["Content-Type"] ?? headers["content-type"] ?? "?") as string;
     const server = (headers["Server"] ?? headers["server"] ?? "?") as string;
     const cfRay = (headers["Cf-Ray"] ?? headers["cf-ray"] ?? "?") as string;
-    const reqUrl = (response as any).request?.url ?? "?";
+    const reqUrl =
+      (response as unknown as { request?: { url?: string } }).request?.url ??
+        "?";
     const ctx =
       `status=${response.status} ct=${ct} server=${server} cf-ray=${cfRay} url=${reqUrl} preview="${preview}"`;
 

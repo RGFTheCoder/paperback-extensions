@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /* Copyright © 2026 Inkdex */
 
-import { type CookieStorageInterceptor } from "@paperback/types-0.9";
+import type { CookieStorageInterceptor } from "@paperback/types-0.9";
 import * as cheerio from "cheerio";
 
 import { type ChapterItem, DOMAIN } from "../models.ts";
@@ -74,7 +74,7 @@ async function runProxiedWebView<T>(
 // The SPA fetches chapters on mount and on Next-button click. Capture the
 // decrypted JSON for each fetch via JSON.parse, then drive pagination by
 // clicking the Next button until meta.lastPage is reached.
-export async function chapterListViaWebView(
+export function chapterListViaWebView(
   mangaId: string,
   cookieInterceptor: CookieStorageInterceptor,
 ): Promise<ChapterItem[]> {

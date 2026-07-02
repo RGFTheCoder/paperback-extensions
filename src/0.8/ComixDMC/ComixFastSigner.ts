@@ -29,17 +29,6 @@ function b64Decode(s: string): number[] {
   return out;
 }
 
-// Inverse-permutation cache, keyed by the stage's forward S-box base64.
-const INV_CACHE: Record<string, number[]> = {};
-function inverseSbox(tableB64: string): number[] {
-  const cached = INV_CACHE[tableB64];
-  if (cached) return cached;
-  const table = b64Decode(tableB64);
-  const inv: number[] = new Array(256).fill(0);
-  for (let i = 0; i < 256; i++) inv[table[i]!] = i;
-  INV_CACHE[tableB64] = inv;
-  return inv;
-}
 const KEY_CACHE: Record<string, number[]> = {};
 function keyBytes(keyB64: string): number[] {
   const cached = KEY_CACHE[keyB64];

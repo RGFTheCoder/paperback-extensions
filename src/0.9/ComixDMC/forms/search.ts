@@ -169,25 +169,32 @@ export class ComixAdvancedSearchForm extends AdvancedSearchForm {
     ];
   }
 
-  async handleGenresChange(value: TagMap): Promise<void> {
+  handleGenresChange(value: TagMap): Promise<void> {
     this.searchMetadata.genres = value;
+    return Promise.resolve();
   }
-  async handleDemogChange(value: TagMap): Promise<void> {
+  handleDemogChange(value: TagMap): Promise<void> {
     this.searchMetadata.demographic = value;
+    return Promise.resolve();
   }
-  async handleStatusChange(value: TagMap): Promise<void> {
+  handleStatusChange(value: TagMap): Promise<void> {
     this.searchMetadata.status = value;
+    return Promise.resolve();
   }
-  async handleTypesChange(value: TagMap): Promise<void> {
+  handleTypesChange(value: TagMap): Promise<void> {
     this.searchMetadata.types = value;
+    return Promise.resolve();
   }
-  async handleFormatsChange(value: TagMap): Promise<void> {
+  handleFormatsChange(value: TagMap): Promise<void> {
     this.searchMetadata.formats = value;
+    return Promise.resolve();
   }
-  async handleMinChapters(value: number): Promise<void> {
+  handleMinChapters(value: number): Promise<void> {
     this.searchMetadata.minChap = value;
+    return Promise.resolve();
   }
-  async handleContentRating(value: string[]): Promise<void> {
+  handleContentRating(value: string[]): Promise<void> {
     this.searchMetadata.contentRating = value;
+    return Promise.resolve();
   }
 }

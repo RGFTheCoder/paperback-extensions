@@ -8,7 +8,7 @@
 // To use: start a local log server (see the repo's dev tooling), copy the
 // "LAN URL" it prints, and paste it below. The device POSTs here over the LAN.
 
-import { RequestManager } from "@paperback/types-0.8";
+import type { RequestManager } from "@paperback/types-0.8";
 
 export const LOCAL_LOG_URL: string = "";
 
@@ -40,5 +40,5 @@ export function debugLog(tag: string, data?: Record<string, unknown>): void {
       data: payload,
     });
     void getRM().schedule(req, 1).catch(() => {});
-  } catch {}
+  } catch { /* best-effort debug logging; never throw */ }
 }

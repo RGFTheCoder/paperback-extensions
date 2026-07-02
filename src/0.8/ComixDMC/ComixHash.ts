@@ -10,7 +10,7 @@
  *     experiment/crypto-pipeline/README.md)
  */
 
-import { RequestManager, Response } from "@paperback/types-0.8";
+import type { RequestManager, Response } from "@paperback/types-0.8";
 import { fastGenerateHash } from "./ComixFastSigner.ts";
 import { fastDecryptComixPayload } from "./ComixFastDecrypt.ts";
 import { emit } from "../lib/telemetry.ts";
@@ -56,7 +56,7 @@ export function signUrl(url: string): string {
   return `${url}${sep}_=${token}`;
 }
 
-async function requestSignedUrl(
+function requestSignedUrl(
   requestManager: RequestManager,
   url: string,
 ): Promise<Response> {
@@ -81,7 +81,8 @@ function checkSignedResponseError(response: Response): void {
   const ct =
     (headers["Content-Type"] ?? headers["content-type"] ?? "?") as string;
   const cfRay = (headers["Cf-Ray"] ?? headers["cf-ray"] ?? "?") as string;
-  const reqUrl = (response as any).request?.url ?? "?";
+  const reqUrl =
+    (response as unknown as { request?: { url?: string } }).request?.url ?? "?";
   const ctx =
     `status=${response.status} ct=${ct} cf-ray=${cfRay} url=${reqUrl} preview="${preview}"`;
 
@@ -146,7 +147,9 @@ export async function fetchSigned<T>(
 
   if (json && typeof json === "object" && "e" in json) {
     const decryptStart = Date.now();
-    const decrypted = fastDecryptComixPayload(apiPath, json, headers) as any;
+    const decrypted = fastDecryptComixPayload(apiPath, json, headers) as
+      | { status?: string; result?: unknown }
+      | null;
     const decryptMs = Date.now() - decryptStart;
     emit({
       label,

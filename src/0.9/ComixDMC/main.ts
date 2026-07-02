@@ -50,10 +50,11 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
   filter = new ComixFilter();
   api = new ComixApi(this.filter);
 
-  async initialise(): Promise<void> {
+  initialise(): Promise<void> {
     this.globalRateLimiter.registerInterceptor();
     this.cookieStorageInterceptor.registerInterceptor();
     this.mainInterceptor.registerInterceptor();
+    return Promise.resolve();
   }
 
   private async checkFilters(): Promise<void> {
@@ -113,15 +114,16 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
     return new MainSettings(this.filter, () => this.updateFilters(true));
   }
 
-  async saveCloudflareBypassCookies(cookies: Cookie[]): Promise<void> {
+  saveCloudflareBypassCookies(cookies: Cookie[]): Promise<void> {
     for (const cookie of cookies) {
       if (cookie.name == "cf_clearance") {
         this.cookieStorageInterceptor.setCookie(cookie);
       }
     }
+    return Promise.resolve();
   }
 
-  async getDiscoverSections(): Promise<DiscoverSection[]> {
+  getDiscoverSections(): Promise<DiscoverSection[]> {
     const allSections: Record<string, DiscoverSection> = {
       popular: {
         id: "popular",
@@ -187,9 +189,11 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
         type: DiscoverSectionType.genres,
       },
     };
-    return getDiscoverySectionsOrder()
-      .map((key) => allSections[key.id])
-      .filter(Boolean);
+    return Promise.resolve(
+      getDiscoverySectionsOrder()
+        .map((key) => allSections[key.id])
+        .filter(Boolean),
+    );
   }
 
   async getDiscoverSectionItems(
@@ -254,7 +258,7 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
     metadata: Metadata | undefined,
     sortingOption: SortingOption,
   ): Promise<PagedResults<SearchResultItem>> {
-    let sorting = sortingOption;
+    const sorting = sortingOption;
     if (searchQuery.metadata === undefined) {
       searchQuery.metadata = getDefaultMetadata(this.filter);
     }
@@ -301,7 +305,7 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
     return new ComixAdvancedSearchForm(searchQuery, this.filter);
   }
 
-  async getSortingOptions(
+  getSortingOptions(
     query: SearchQuery<SearchMetadata>,
   ): Promise<SortingOption[]> {
     const idSuffix = query.title.length > 1 ? "#title" : "";
@@ -337,7 +341,7 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
         return sort.id !== "views_30d$desc#empty";
       });
     }
-    return sortingOptions;
+    return Promise.resolve(sortingOptions);
   }
 
   async getMangaDetails(mangaId: string): Promise<SourceManga> {
