@@ -22,7 +22,7 @@ import {
 } from "@paperback/types-0.8";
 
 import { Parser } from "./Parser.ts";
-import { fetchSigned, signUrl } from "./ComixHash.ts";
+import { encodeComixParam, fetchSigned, signUrl } from "./ComixHash.ts";
 import { emit } from "../lib/telemetry.ts";
 import { DEBUG, debugLog } from "../lib/debug-log.ts";
 import {
@@ -694,11 +694,12 @@ export class ComixDMC extends Source
     let url = `${API_BASE}/manga?order[${orderKey}]=desc&page=${page}&limit=20`;
 
     if (query.title) {
-      // comix.to splits the keyword on `+` to do multi-term matching; `%20` is treated
-      // as a literal space and breaks relevance ranking. Match what the browser sends.
-      url += `&keyword=${
-        encodeURIComponent(normalizeString(query.title)).replace(/%20/g, "+")
-      }`;
+      // Encode the keyword exactly like axios's default paramsSerializer (what
+      // comix.to's client uses): spaces → `+` (comix splits the keyword on `+`
+      // for multi-term matching) and `: $ , [ ]` left raw. The `_` token signs
+      // the RAW query, so sending `%3A` for a colon (as we used to) made the
+      // server's re-canonicalization mismatch the token → 403 "Invalid token.".
+      url += `&keyword=${encodeComixParam(normalizeString(query.title))}`;
     }
 
     // --- Logic Mode (only relevant when filtering by tags) ---

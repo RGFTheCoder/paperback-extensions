@@ -57,6 +57,13 @@ const SIGN_PARAM_CASES: Array<[string, Record<string, unknown>]> = [
     genres_mode: "and",
   }],
   ["/manga", { keyword: "日本語 é & x=y", page: 3 }],
+  ["/manga", {
+    "order[relevance]": "desc",
+    page: 1,
+    limit: 20,
+    keyword: "Top Tier Providence: Secretly Cultivate for a Thousand Years",
+  }],
+  ["/manga", { keyword: "a: b", page: 1 }],
 ];
 
 const PAYLOADS = [
@@ -104,10 +111,10 @@ export async function validate() {
 
   const { reqI, resI } = bootBundle();
   const { fastGenerateHash } = await importTs(
-    resolve(ROOT, "src/0.8/ComixDMC/ComixFastSigner.ts"),
+    resolve(ROOT, "ComixDMC/ComixFastSigner.ts"),
   );
   const { fastDecryptComixPayload } = await importTs(
-    resolve(ROOT, "src/0.8/ComixDMC/ComixFastDecrypt.ts"),
+    resolve(ROOT, "ComixDMC/ComixFastDecrypt.ts"),
   );
 
   let signPass = 0, signFail = 0;

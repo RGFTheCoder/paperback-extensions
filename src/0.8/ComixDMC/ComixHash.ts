@@ -33,6 +33,26 @@ function isSignedPath(path: string): boolean {
 }
 
 /**
+ * Encode a query-param value exactly like axios's default paramsSerializer
+ * (the serializer comix.to's own client uses). The `_` signature is computed
+ * over the RAW (decoded) query, so the wire query must decode back to those
+ * same raw values or the server rejects the token with 403 "Invalid token.".
+ * Axios leaves `: $ , [ ]` unescaped and encodes spaces as `+`; the previous
+ * code only did the `+` substitution, so a keyword containing e.g. a colon
+ * was sent as `%3A` — which the server's re-canonicalization treats as literal
+ * `%3A`, not `:`, invalidating the token.
+ */
+export function encodeComixParam(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/%3A/gi, ":")
+    .replace(/%24/g, "$")
+    .replace(/%2C/gi, ",")
+    .replace(/%20/g, "+")
+    .replace(/%5B/gi, "[")
+    .replace(/%5D/gi, "]");
+}
+
+/**
  * Generate the comix.to /api/v1 `_=` token for a request. Since bundle 625d…
  * the signature covers the path AND its query params; `fastGenerateHash`
  * canonicalizes the query internally, so pass the full URL (or path+query).
