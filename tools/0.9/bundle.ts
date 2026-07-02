@@ -134,7 +134,8 @@ async function writeVersioning(sources: string[]): Promise<void> {
       types: typesVersion,
     },
     repository: {
-      name: projectInfo.name ?? "DMC's Extensions (0.9)",
+      // Version-qualify the monorepo name (deno.json) for this repo page.
+      name: `${projectInfo.name ?? "DMC's Extensions"} (0.9)`,
       description: projectInfo.description ??
         "DMC's extensions for Paperback 0.9",
     },

@@ -1,5 +1,7 @@
 {
-  "description": "Comix extension for Paperback 0.8 and 0.9 (DMC fork), unified monorepo.",
+  "name": "DMC's Extensions",
+  "exports": {},
+  "description": "DMC's extensions for Paperback 0.8 and 0.9, unified monorepo.",
   "imports": {
     "@paperback/types-0.8": "npm:@paperback/types@^0.8.0-alpha.47",
     "@paperback/types-0.9": "npm:@paperback/types@^1.0.0-alpha.92",
