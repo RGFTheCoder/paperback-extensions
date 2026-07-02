@@ -16,6 +16,8 @@ import type {
   EncodedImage,
 } from "../../../shared/descramble/descramble.ts";
 import { decodePng } from "../../../shared/descramble/png.ts";
+import type { DecodedImage } from "../../../shared/descramble/png.ts";
+import { decodeJpeg } from "../../../shared/descramble/jpeg.ts";
 
 const B64_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -51,32 +53,70 @@ function decodeBase64Ascii(ascii: Uint8Array, start: number): Uint8Array {
   return out.subarray(0, o);
 }
 
-// Normalize whatever `PBCanvas.encode("image/png")` hands back into raw PNG file
-// bytes. On-device this may arrive as binary PNG, as base64 text, or as a
-// `data:image/png;base64,…` data URI (the host serializes differently across
-// versions). If it's some other image format entirely, throw a header-hex
-// diagnostic — the caller logs it via `appLog("descramble-error", …)`.
-function toPngBytes(bytes: Uint8Array): Uint8Array {
-  if (isPngSignature(bytes)) return bytes;
-  let start = 0;
-  let head = "";
-  const scan = Math.min(bytes.length, 64);
-  for (let i = 0; i < scan; i++) head += String.fromCharCode(bytes[i]!);
-  if (head.startsWith("data:")) {
-    const comma = head.indexOf(",");
-    if (comma !== -1) start = comma + 1;
+// If a host `_data` RawData looks like a raw pixel buffer for a `px`-pixel image
+// (RGBA = px·4, or RGB = px·3), materialize it as RGBA. Returns null otherwise
+// (e.g. it's actually encoded bytes, or absent).
+function rawRgbaFrom(
+  data: RawData | undefined,
+  px: number,
+): Uint8Array | null {
+  if (!data) return null;
+  const len = data.length;
+  if (len === px * 4) return App.createByteArray(data);
+  if (len === px * 3) {
+    const rgb = App.createByteArray(data);
+    const out = new Uint8Array(px * 4);
+    for (let i = 0, o = 0; i < rgb.length; i += 3) {
+      out[o++] = rgb[i]!;
+      out[o++] = rgb[i + 1]!;
+      out[o++] = rgb[i + 2]!;
+      out[o++] = 255;
+    }
+    return out;
   }
-  const first = bytes[start] ?? 0;
-  const looksBase64 = (first >= 0x41 && first <= 0x5a) ||
-    (first >= 0x61 && first <= 0x7a) || (first >= 0x30 && first <= 0x39) ||
-    first === 0x2b || first === 0x2f;
-  if (looksBase64) {
-    const decoded = decodeBase64Ascii(bytes, start);
-    if (isPngSignature(decoded)) return decoded;
+  return null;
+}
+
+function isJpegSignature(bytes: Uint8Array): boolean {
+  return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 &&
+    bytes[2] === 0xff;
+}
+
+// Decode whatever `PBCanvas.encode(...)` hands back into raw RGBA. On-device the
+// bytes may arrive as binary PNG, binary JPEG, base64 text, or a
+// `data:…;base64,…` data URI (the host serializes differently across versions,
+// and 0.8 ignores the requested PNG MIME — it re-encodes to JPEG). We normalize
+// any base64/data-URI wrapper, then dispatch on the file signature. Unknown
+// formats throw a diagnostic (header hex + candidate raw-buffer sizes) that the
+// caller logs via `appLog("descramble-error", …)`.
+function decodeEncodedImage(
+  bytes: Uint8Array,
+  diag: { px: number; scratchLen: number; srcLen: number },
+): DecodedImage {
+  let raw = bytes;
+  if (!isPngSignature(raw) && !isJpegSignature(raw)) {
+    let start = 0;
+    let head = "";
+    const scan = Math.min(bytes.length, 64);
+    for (let i = 0; i < scan; i++) head += String.fromCharCode(bytes[i]!);
+    if (head.startsWith("data:")) {
+      const comma = head.indexOf(",");
+      if (comma !== -1) start = comma + 1;
+    }
+    const first = bytes[start] ?? 0;
+    const looksBase64 = (first >= 0x41 && first <= 0x5a) ||
+      (first >= 0x61 && first <= 0x7a) || (first >= 0x30 && first <= 0x39) ||
+      first === 0x2b || first === 0x2f;
+    if (looksBase64) raw = decodeBase64Ascii(bytes, start);
   }
-  const hex = Array.from(bytes.slice(0, 12))
+  if (isPngSignature(raw)) return decodePng(raw);
+  if (isJpegSignature(raw)) return decodeJpeg(raw);
+  const hex = Array.from(raw.slice(0, 12))
     .map((b) => b.toString(16).padStart(2, "0")).join("");
-  throw new Error(`adaptive: non-PNG encode header=${hex} len=${bytes.length}`);
+  throw new Error(
+    `adaptive: unknown encode header=${hex} len=${raw.length} ` +
+      `px4=${diag.px * 4} scratchLen=${diag.scratchLen} srcLen=${diag.srcLen}`,
+  );
 }
 
 class PBDescrambleCanvas implements DescrambleCanvas<RawData> {
@@ -102,18 +142,33 @@ class PBDescrambleCanvas implements DescrambleCanvas<RawData> {
     this.canvas.drawImage(this.src, sx, sy, sw, sh, dx, dy);
   }
 
-  // Decode the *source* to RGBA for the adaptive solver. 0.8 exposes no pixel
-  // readback, so we re-encode the untouched source to PNG (lossless) on a scratch
-  // canvas and inflate it in pure JS. Called once per page only when adaptive is
-  // selected, before any drawTile mutates the destination.
+  // Decode the *source* to RGBA for the adaptive solver. Prefer a raw pixel
+  // buffer if the host exposes one (lossless, no decode). Otherwise fall back to
+  // re-encoding the untouched source on a scratch canvas and decoding it in pure
+  // JS. Called once per page only when adaptive is selected, before any drawTile
+  // mutates the destination.
   getSourcePixels(): Uint8Array {
     const scratch = App.createPBCanvas();
     scratch.setSize(this.width, this.height);
     scratch.drawImage(this.src, 0, 0, this.width, this.height, 0, 0);
+
+    // 1. Raw pixel readback, if available (PBCanvas/PBImage `_data`).
+    const px = this.width * this.height;
+    const rawScratch = rawRgbaFrom(scratch.data, px);
+    if (rawScratch) return rawScratch;
+    const rawSrc = rawRgbaFrom(this.src.data, px);
+    if (rawSrc) return rawSrc;
+
+    // 2. Re-encode + decode. The host ignores the requested MIME on some
+    //    versions (returns JPEG), so `decodeEncodedImage` sniffs the actual
+    //    format (PNG or JPEG, base64-wrapped or not) and records sizes if it
+    //    can't identify it.
     const raw = scratch.encode("image/png");
     if (!raw) throw new Error("PBCanvas.encode(png) returned no data");
-    const bytes = toPngBytes(App.createByteArray(raw));
-    const { data } = decodePng(bytes);
+    const encoded = App.createByteArray(raw);
+    const scratchLen = scratch.data ? scratch.data.length : -1;
+    const srcLen = this.src.data ? this.src.data.length : -1;
+    const { data } = decodeEncodedImage(encoded, { px, scratchLen, srcLen });
     return data;
   }
 
