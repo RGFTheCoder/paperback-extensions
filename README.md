@@ -31,10 +31,9 @@ Tiled/scrambled page images are unscrambled by shared code in
 - `permutation.ts` — the pure permutation math for all three schemes: `lcg`
   (Numerical Recipes ranqd1, the 0.9 scheme), `xorshift` (0.8 legacy algo 2) and
   `gf2affine` (0.8 algo 3).
-- `canvas.ts` — a `CanvasBackend` interface; each platform injects its own class
-  (`src/0.8/.../CanvasBackend.ts` uses `App.createPBCanvas`;
-  `src/0.9/.../
-  canvasBackend.ts` uses the DOM polyfill).
+- `canvas.ts` — a `CanvasBackend` interface that each platform implements:
+  - 0.8 (`src/0.8/ComixTo/CanvasBackend.ts`) draws via `App.createPBCanvas`.
+  - 0.9 (`src/0.9/ComixDMC/utils/canvasBackend.ts`) draws via the DOM polyfill.
 - `descramble.ts` — the header parsing + reassembly orchestrator both share.
 
 Each extension exposes a **Descramble Scheme** setting (Auto / LCG / xorshift /
