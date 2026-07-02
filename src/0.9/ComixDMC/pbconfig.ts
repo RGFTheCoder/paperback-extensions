@@ -10,7 +10,7 @@ import {
 export default {
   name: "ComixTo (DMC)",
   description: "Extension that pulls content from Comix.to.",
-  version: "1.10.0-alpha.8",
+  version: "1.10.1-alpha.0",
   icon: "icon.png",
   language: "en",
   contentRating: ContentRating.EVERYONE,

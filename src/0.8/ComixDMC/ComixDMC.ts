@@ -44,6 +44,8 @@ import {
   getContentRatingMax,
   getDescrambleDebug,
   getDescrambleScheme,
+  getHidePartials,
+  getMostPopularOnly,
   getStrictNameMatching,
   getTagAndMode,
   getTagBlacklist,
@@ -81,7 +83,7 @@ function isImageRequestUrl(url: string): boolean {
 }
 
 export const ComixDMCInfo: SourceInfo = {
-  version: "1.10.0-alpha.8",
+  version: "1.10.1-alpha.0",
   name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
@@ -389,12 +391,19 @@ export class ComixDMC extends Source
       ],
     );
 
+    const [mostPopularOnly, hidePartials] = await Promise.all([
+      getMostPopularOnly(this.stateManager),
+      getHidePartials(this.stateManager),
+    ]);
+
     const parsed = this.parser.parseChapters(
       chapters,
       isFiltering,
       isWhitelist,
       isStrict,
       savedGroups,
+      mostPopularOnly,
+      hidePartials,
     );
     return parsed;
   }

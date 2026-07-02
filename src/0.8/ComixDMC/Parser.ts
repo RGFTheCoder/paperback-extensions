@@ -14,6 +14,7 @@ import {
   normalizeString,
   parseRelativeTime,
 } from "./Common.ts";
+import { filterChapters } from "../../../shared/chapters/filter.ts";
 
 const NO_POSTER = "https://comix.to/images/no-poster.png";
 const isNsfw = (rating?: string) => rating != null && rating !== "safe";
@@ -64,8 +65,12 @@ export class Parser {
     isWhitelist: boolean,
     isStrict: boolean,
     savedGroups: string[],
+    mostPopularOnly: boolean,
+    hidePartials: boolean,
   ): Chapter[] {
-    const chapters: Chapter[] = [];
+    // 1. Scanlation-group whitelist/blacklist (user's group prefs). Normalize
+    //    votes so the shared filter can rank uploads.
+    const kept: (APIChapterItem & { votes: number })[] = [];
 
     for (const chap of data) {
       const groupName = chap.group?.name || "";
@@ -93,21 +98,27 @@ export class Parser {
         if (!isWhitelist && matchFound) continue;
       }
 
-      chapters.push(
-        App.createChapter({
-          id: chap.id.toString(),
-          chapNum: chap.number,
-          name: chap.name ? `${chap.name}` : `Chapter ${chap.number}`,
-          langCode: chap.language || "en",
-          volume: chap.volume,
-          group: groupName,
-          time: parseRelativeTime(chap.createdAtFormatted),
-          sortingIndex: chap.number,
-        }),
-      );
+      kept.push({ ...chap, votes: chap.votes ?? 0 });
     }
 
-    return chapters;
+    // 2. Most-popular dedupe + partial hiding (shared, off unless enabled).
+    const filtered = filterChapters(kept, { mostPopularOnly, hidePartials });
+
+    // 3. Map to Paperback chapters. The comix chapter id is kept as-is, so read
+    //    progress is per real upload (it may reset for a chapter if its
+    //    top-voted group later changes).
+    return filtered.map((chap) =>
+      App.createChapter({
+        id: chap.id.toString(),
+        chapNum: chap.number,
+        name: chap.name ? `${chap.name}` : `Chapter ${chap.number}`,
+        langCode: chap.language || "en",
+        volume: chap.volume,
+        group: chap.group?.name || "",
+        time: parseRelativeTime(chap.createdAtFormatted),
+        sortingIndex: chap.number,
+      })
+    );
   }
 
   parseChapterDetails(

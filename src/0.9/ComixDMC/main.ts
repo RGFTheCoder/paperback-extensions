@@ -21,7 +21,12 @@ import {
 } from "@paperback/types-0.9";
 
 import { ComixAdvancedSearchForm } from "./forms/search.ts";
-import { getDiscoverySectionsOrder, MainSettings } from "./forms/settings.ts";
+import {
+  getDiscoverySectionsOrder,
+  getHidePartials,
+  getMostPopularOnly,
+  MainSettings,
+} from "./forms/settings.ts";
 import type {
   Filters,
   Metadata,
@@ -33,6 +38,7 @@ import { ComixParser } from "./parsers.ts";
 import type ComixConfig from "./pbconfig.ts";
 import { ComixFilter } from "./utils/filter.ts";
 import { buildFilter, getDefaultMetadata } from "./utils/helpers.ts";
+import { filterChapters } from "../../../shared/chapters/filter.ts";
 
 export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
   globalRateLimiter = new BasicRateLimiter("rateLimiter", {
@@ -354,7 +360,11 @@ export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
       sourceManga.mangaId,
       this.cookieStorageInterceptor,
     );
-    return this.parser.parseChapters(sourceManga, items);
+    const filtered = filterChapters(items, {
+      mostPopularOnly: getMostPopularOnly(),
+      hidePartials: getHidePartials(),
+    });
+    return this.parser.parseChapters(sourceManga, filtered);
   }
 
   async getChapterDetails(chapter: Chapter): Promise<ChapterDetails> {

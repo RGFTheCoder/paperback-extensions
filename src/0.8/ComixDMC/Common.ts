@@ -59,6 +59,7 @@ export interface APIChapterItem {
   name: string;
   language: string;
   volume: number;
+  votes?: number;
   createdAtFormatted?: string;
   group?: { id: number; name: string };
 }

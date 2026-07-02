@@ -77,6 +77,8 @@ const warmUpGroupSettings = (
       await getUploaders(stateManager);
       await getSelectedUploaders(stateManager);
       await getUploaderInput(stateManager);
+      await getMostPopularOnly(stateManager);
+      await getHidePartials(stateManager);
     })();
   }
   return groupSettingsWarmUp;
@@ -129,6 +131,23 @@ export const getUploadersFiltering = async (
   stateManager: SourceStateManager,
 ): Promise<boolean> => {
   return (await stateManager.retrieve("uploaders_toggled") as boolean) ?? false;
+};
+
+// When on, only the highest-voted upload per chapter number (per language) is
+// shown. Off by default. Read progress is keyed on the comix chapter id, so it
+// may reset for a chapter if its top-voted group later changes.
+export const getMostPopularOnly = async (
+  stateManager: SourceStateManager,
+): Promise<boolean> => {
+  return (await stateManager.retrieve("most_popular_only") as boolean) ?? false;
+};
+
+// When on, split "part" uploads (x.1, x.2, …) are hidden once the whole integer
+// chapter x has released; .5 half-chapters are always kept. Off by default.
+export const getHidePartials = async (
+  stateManager: SourceStateManager,
+): Promise<boolean> => {
+  return (await stateManager.retrieve("hide_partials") as boolean) ?? false;
 };
 
 export const getUploadersWhitelisted = async (
@@ -332,6 +351,34 @@ export const groupSettings = (
                         "strict_name_matching",
                         newValue,
                       ),
+                  }),
+                }),
+              ]),
+          }),
+          App.createDUISection({
+            id: "chapter_filtering",
+            header: "Chapter Filtering",
+            footer:
+              "Most Popular Only shows just the highest-voted upload per chapter (read progress may reset if the top group later changes). Hide Split Parts hides x.1/x.2 uploads once the whole chapter releases; .5 half-chapters are always kept.",
+            isHidden: false,
+            rows: () =>
+              keepAliveAsync([
+                App.createDUISwitch({
+                  id: "most_popular_only",
+                  label: "Most Popular Only",
+                  value: App.createDUIBinding({
+                    get: async () => await getMostPopularOnly(stateManager),
+                    set: async (newValue: boolean) =>
+                      await stateManager.store("most_popular_only", newValue),
+                  }),
+                }),
+                App.createDUISwitch({
+                  id: "hide_partials",
+                  label: "Hide Split Parts",
+                  value: App.createDUIBinding({
+                    get: async () => await getHidePartials(stateManager),
+                    set: async (newValue: boolean) =>
+                      await stateManager.store("hide_partials", newValue),
                   }),
                 }),
               ]),

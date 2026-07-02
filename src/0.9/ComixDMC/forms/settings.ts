@@ -60,6 +60,22 @@ export function getDescrambleDebug(): boolean {
     false;
 }
 
+// When on, for each chapter number only the single highest-voted upload (per
+// language) is shown. Off by default. Note: read progress is keyed on the comix
+// chapter id, so it may reset for a chapter if its top-voted group later
+// changes.
+export function getMostPopularOnly(): boolean {
+  return (Application.getState("most_popular_only") as boolean | undefined) ??
+    false;
+}
+
+// When on, split "part" uploads (x.1, x.2, …) are hidden once the whole integer
+// chapter x has released; .5 half-chapters are always kept. Off by default.
+export function getHidePartials(): boolean {
+  return (Application.getState("hide_partials") as boolean | undefined) ??
+    false;
+}
+
 function getDeletedDiscoverySections() {
   return (
     (Application.getState("deleted_sections") as
@@ -302,6 +318,31 @@ export class MainSettings extends BaseSettings {
           }),
         ],
       ),
+      Section(
+        {
+          id: "chapter_filtering",
+          footer:
+            "Most Popular Only: show just the highest-voted upload per chapter. Hide Split Parts: hide x.1/x.2 partials once the whole chapter x releases (.5 side-chapters are always kept).",
+        },
+        [
+          ToggleRow("most_popular_only", {
+            title: "Most Popular Only",
+            value: getMostPopularOnly(),
+            onValueChange: Application.Selector(
+              this as MainSettings,
+              "handleMostPopularOnlyChange",
+            ),
+          }),
+          ToggleRow("hide_partials", {
+            title: "Hide Split Parts",
+            value: getHidePartials(),
+            onValueChange: Application.Selector(
+              this as MainSettings,
+              "handleHidePartialsChange",
+            ),
+          }),
+        ],
+      ),
     ];
   }
   async refreshFilters() {
@@ -320,6 +361,18 @@ export class MainSettings extends BaseSettings {
 
   handleDescrambleDebugChange(value: boolean) {
     Application.setState(value, "descramble_debug");
+    this.reloadForm();
+    return Promise.resolve();
+  }
+
+  handleMostPopularOnlyChange(value: boolean) {
+    Application.setState(value, "most_popular_only");
+    this.reloadForm();
+    return Promise.resolve();
+  }
+
+  handleHidePartialsChange(value: boolean) {
+    Application.setState(value, "hide_partials");
     this.reloadForm();
     return Promise.resolve();
   }
