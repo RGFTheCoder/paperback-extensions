@@ -1,5 +1,5 @@
 {
-  "buildTime": "2026-07-02T03:18:31.981Z",
+  "buildTime": "2026-07-02T03:23:53.201Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.92",
     "types": "1.0.0-alpha.92"
@@ -12,7 +12,7 @@
     {
       "name": "ComixTo (DMC)",
       "description": "Extension that pulls content from Comix.to.",
-      "version": "1.10.0-alpha.4",
+      "version": "1.10.0-alpha.5",
       "icon": "icon.png",
       "language": "en",
       "contentRating": "SAFE",
