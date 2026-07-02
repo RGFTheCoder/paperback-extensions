@@ -29,7 +29,8 @@ import {
   readScrambleHeaders,
 } from "../../../shared/descramble/descramble.ts";
 import { domCanvasBackend } from "./utils/canvasBackend.ts";
-import { getDescrambleScheme } from "./forms/settings.ts";
+import { getDescrambleDebug, getDescrambleScheme } from "./forms/settings.ts";
+import { appLog } from "./utils/applog.ts";
 import type { ComixFilter } from "./utils/filter.ts";
 import { chapterListViaWebView, pageListViaWebView } from "./utils/webView.ts";
 
@@ -70,10 +71,12 @@ export class ComixInterceptor extends PaperbackInterceptor {
       // another for on-device testing. "none" shows the raw scrambled page;
       // "adaptive" reconstructs from pixel content.
       const override = getDescrambleScheme();
+      const debug = getDescrambleDebug();
       if (override === "none") {
         console.log(
           `[Comix] descramble skipped (mode=none) for ${request.url}`,
         );
+        if (debug) appLog("skip", { mode: "none" });
         return data; // show scrambled as-is
       }
       const mode: DescrambleMode = override ?? "lcg";
@@ -87,6 +90,13 @@ export class ComixInterceptor extends PaperbackInterceptor {
       console.log(
         `[Comix] descrambled page (mode=${mode}, grid=${scrambleParams.cols}x${scrambleParams.rows}, seed=${scrambleParams.seed}) for ${request.url}`,
       );
+      if (debug) {
+        appLog("descramble", {
+          mode,
+          grid: `${scrambleParams.cols}x${scrambleParams.rows}`,
+          seed: scrambleParams.seed,
+        });
+      }
       return result.data;
     } catch (error) {
       console.log(

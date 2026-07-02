@@ -24,7 +24,7 @@ import {
 import { Parser } from "./Parser.ts";
 import { encodeComixParam, fetchSigned, signUrl } from "./ComixHash.ts";
 import { emit } from "../lib/telemetry.ts";
-import { DEBUG, debugLog } from "../lib/debug-log.ts";
+import { appLog, DEBUG, debugLog } from "../lib/debug-log.ts";
 import {
   API_BASE,
   type APIChapterResult,
@@ -42,6 +42,7 @@ import {
   contentSettings,
   getCachedTags,
   getContentRatingMax,
+  getDescrambleDebug,
   getDescrambleScheme,
   getStrictNameMatching,
   getTagAndMode,
@@ -80,7 +81,7 @@ function isImageRequestUrl(url: string): boolean {
 }
 
 export const ComixDMCInfo: SourceInfo = {
-  version: "1.10.0-alpha.5",
+  version: "1.10.0-alpha.6",
   name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
@@ -143,8 +144,10 @@ export class ComixDMC extends Source
             // otherwise the header-driven default dispatch. "none" shows the raw
             // scrambled page; "adaptive" reconstructs from pixel content.
             const override = await getDescrambleScheme(this.stateManager);
+            const debug = await getDescrambleDebug(this.stateManager);
             if (override === "none") {
               console.log("[ComixDMC] descramble skipped (mode=none)");
+              if (debug) appLog("skip", { mode: "none" });
               return response; // show scrambled as-is
             }
             const mode: DescrambleMode = override ??
@@ -178,6 +181,13 @@ export class ComixDMC extends Source
             console.log(
               `[ComixDMC] descrambled page (mode=${mode}, grid=${scr.cols}x${scr.rows}, seed=${scr.seed})`,
             );
+            if (debug) {
+              appLog("descramble", {
+                mode,
+                grid: `${scr.cols}x${scr.rows}`,
+                seed: scr.seed,
+              });
+            }
           } catch (error) {
             const message = error instanceof Error
               ? error.message
@@ -190,6 +200,9 @@ export class ComixDMC extends Source
             console.log(
               `[ComixDMC] descramble error: ${message}`,
             );
+            if (await getDescrambleDebug(this.stateManager)) {
+              appLog("descramble-error", { error: message });
+            }
           }
           return response;
         }

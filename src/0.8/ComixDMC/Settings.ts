@@ -14,6 +14,7 @@ import {
   CONTENT_TYPES,
 } from "./Common.ts";
 import { signUrl } from "./ComixHash.ts";
+import { appLog } from "../lib/debug-log.ts";
 import type { DescrambleMode } from "../../../shared/descramble/descramble.ts";
 
 // A resolved descramble setting: a concrete mode, "none" (show scrambled), or
@@ -115,6 +116,13 @@ export const getDescrambleScheme = async (
   ) return id;
   return null; // "auto" / unset → header dispatch
 };
+
+// When on, descramble activity (scheme switches + per-page unscrambles) is
+// mirrored into Paperback's native app log via `appLog`. Off by default.
+export const getDescrambleDebug = async (
+  stateManager: SourceStateManager,
+): Promise<boolean> =>
+  (await stateManager.retrieve("descramble_debug") as boolean) ?? false;
 
 // --- HELPERS: GROUP FILTERING ---
 export const getUploadersFiltering = async (
@@ -240,11 +248,13 @@ export const contentSettings = (
                       (await getDescrambleScheme(stateManager)) ?? "auto",
                     ],
                     set: async (newValue: string[]) => {
+                      const scheme = newValue[0] ?? "auto";
                       console.log(
-                        `[ComixDMC] descramble scheme changed → ${
-                          newValue[0] ?? "auto"
-                        }`,
+                        `[ComixDMC] descramble scheme changed → ${scheme}`,
                       );
+                      if (await getDescrambleDebug(stateManager)) {
+                        appLog("scheme", { to: scheme });
+                      }
                       await stateManager.store("descramble_scheme", newValue);
                     },
                   }),
@@ -254,6 +264,15 @@ export const contentSettings = (
                       DESCRAMBLE_SCHEME_OPTIONS.find((o) => o.id === value)
                         ?.label ?? value,
                     ),
+                }),
+                App.createDUISwitch({
+                  id: "descramble_debug",
+                  label: "Log descramble to app log (debug)",
+                  value: App.createDUIBinding({
+                    get: async () => await getDescrambleDebug(stateManager),
+                    set: async (newValue: boolean) =>
+                      await stateManager.store("descramble_debug", newValue),
+                  }),
                 }),
               ]),
           }),

@@ -21,6 +21,7 @@ import { discoverySections } from "../utils/filter.ts";
 import type {
   DescrambleMode,
 } from "../../../../shared/descramble/descramble.ts";
+import { appLog } from "../utils/applog.ts";
 
 // A resolved descramble setting: a concrete mode, "none" (show scrambled), or
 // null to keep the 0.9 default (LCG).
@@ -50,6 +51,13 @@ export function getDescrambleScheme(): DescrambleSetting {
     id === "adaptive" || id === "none"
   ) return id;
   return null; // "auto" / unset → default scheme
+}
+
+// When on, descramble activity (scheme switches + per-page unscrambles) is
+// mirrored into Paperback's native app log via `appLog`. Off by default.
+export function getDescrambleDebug(): boolean {
+  return (Application.getState("descramble_debug") as boolean | undefined) ??
+    false;
 }
 
 function getDeletedDiscoverySections() {
@@ -284,6 +292,14 @@ export class MainSettings extends BaseSettings {
               "handleDescrambleSchemeChange",
             ),
           }),
+          ToggleRow("descramble_debug", {
+            title: "Log descramble to app log (debug)",
+            value: getDescrambleDebug(),
+            onValueChange: Application.Selector(
+              this as MainSettings,
+              "handleDescrambleDebugChange",
+            ),
+          }),
         ],
       ),
     ];
@@ -294,8 +310,16 @@ export class MainSettings extends BaseSettings {
   }
 
   handleDescrambleSchemeChange(id: string[]) {
-    console.log(`[Comix] descramble scheme changed → ${id[0] ?? "auto"}`);
+    const scheme = id[0] ?? "auto";
+    console.log(`[Comix] descramble scheme changed → ${scheme}`);
+    if (getDescrambleDebug()) appLog("scheme", { to: scheme });
     Application.setState(id, "descramble_scheme");
+    this.reloadForm();
+    return Promise.resolve();
+  }
+
+  handleDescrambleDebugChange(value: boolean) {
+    Application.setState(value, "descramble_debug");
     this.reloadForm();
     return Promise.resolve();
   }

@@ -42,3 +42,32 @@ export function debugLog(tag: string, data?: Record<string, unknown>): void {
     void getRM().schedule(req, 1).catch(() => {});
   } catch { /* best-effort debug logging; never throw */ }
 }
+
+// Base host for `appLog`. Points at a dev log server on the LAN/tailnet (see
+// tools/logserver.ts, `deno task logserver`). Requests also surface in
+// Paperback's native app log as `RequestOperation - <url>` even if the server
+// is down/unreachable, so grepping the app log for this host always works.
+const APPLOG_BASE = "http://100.96.0.8:8787";
+
+// Surface a debug event in Paperback's *native* app log with no PC setup.
+//
+// The app renders outgoing request URLs (e.g. `RequestOperation - https://…`)
+// but NOT extension `console.log`. So `appLog` encodes the event into the query
+// string of a request to an unresolvable `.invalid` host: DNS fails immediately
+// (no real network egress), yet the attempt is logged on-device as
+// `RequestOperation - https://comixdmc.debug.invalid/<tag>?<fields>`. Grep the
+// app log for `comixdmc.debug.invalid` to see them. Opt-in per call site (the
+// per-page descramble events are gated behind a settings toggle).
+export function appLog(
+  tag: string,
+  fields?: Record<string, string | number>,
+): void {
+  try {
+    const qs = Object.entries(fields ?? {})
+      .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+      .join("&");
+    const url = `${APPLOG_BASE}/${tag}${qs ? `?${qs}` : ""}`;
+    const req = App.createRequest({ url, method: "GET" });
+    void getRM().schedule(req, 1).catch(() => {});
+  } catch { /* best-effort; never throw from logging */ }
+}
