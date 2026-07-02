@@ -10,10 +10,10 @@
  *     experiment/crypto-pipeline/README.md)
  */
 
-import { RequestManager, Response } from "@paperback/types";
+import { RequestManager, Response } from "@paperback/types-0.8";
 import { fastGenerateHash } from "./ComixFastSigner";
 import { fastDecryptComixPayload } from "./ComixFastDecrypt";
-import { emit } from "../../lib/telemetry.ts";
+import { emit } from "../lib/telemetry.ts";
 
 // Paths the live bundle's request interceptor signs — verified by probing the
 // booted bundle (experiment/crypto-pipeline). As of bundle 6ffb/625d… (2026-06)

@@ -1,26 +1,53 @@
 {
-  "nodeModulesDir": "auto",
-  "unstable": ["sloppy-imports"],
+  "description": "Comix extension for Paperback 0.8 and 0.9 (DMC fork), unified monorepo.",
+  "nodeModulesDir": "none",
+  "unstable": [
+    "sloppy-imports"
+  ],
   "imports": {
-    "@paperback/types": "npm:@paperback/types@^0.8.0-alpha.47",
+    "@paperback/types-0.8": "npm:@paperback/types@^0.8.0-alpha.47",
+    "@paperback/types-0.9": "npm:@paperback/types@^1.0.0-alpha.92",
+    "@paperback/runtime-polyfills": "npm:@paperback/runtime-polyfills@1.0.0-alpha.92",
+    "cheerio": "npm:cheerio@^1.2.0",
+    "domhandler": "npm:domhandler@^5.0.3",
+    "entities": "npm:entities@^6.0.1",
+    "chai": "npm:chai@^6.2.2",
+    "@types/chai": "npm:@types/chai@^5.2.3",
     "@std/fs": "jsr:@std/fs@^1.0.19",
     "@std/path": "jsr:@std/path@^1.1.2"
   },
   "compilerOptions": {
-    "lib": ["esnext", "dom", "dom.iterable"],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
     "strict": true
   },
   "fmt": {
-    "exclude": ["bundles", "node_modules", "experiment"]
+    "exclude": [
+      "bundles",
+      "node_modules",
+      "src/0.8/experiment"
+    ]
   },
-  "exclude": ["bundles", "node_modules", "experiment"],
+  "exclude": [
+    "bundles",
+    "node_modules",
+    "src/0.8/experiment"
+  ],
   "tasks": {
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
-    "check": "deno check src/ tools/ lib/",
-    "bundle": "deno run --allow-read --allow-write --allow-env --allow-run tools/bundle.ts",
-    "conformance": "deno fmt --check && deno check src/ tools/ lib/",
-    "crypto:pipeline": "deno run -A experiment/crypto-pipeline/run.ts",
-    "crypto:refresh": "deno run -A experiment/RefreshComixBundle.ts"
+    "check": "deno check shared/ src/ tools/",
+    "check:0.8": "deno check shared/ src/0.8/ tools/0.8/",
+    "check:0.9": "deno check shared/ src/0.9/ tools/0.9/",
+    "bundle:0.8": "deno run --allow-read --allow-write --allow-env --allow-run tools/0.8/bundle.ts",
+    "bundle:0.9": "deno run --allow-read --allow-write --allow-env --allow-run --allow-net tools/0.9/bundle.ts",
+    "bundle": "deno task bundle:0.8 && deno task bundle:0.9",
+    "test": "deno run --allow-read --allow-write --allow-env --allow-run --allow-net --allow-sys tools/0.9/test.ts",
+    "conformance": "deno fmt --check && deno task check",
+    "crypto:pipeline": "deno run -A src/0.8/experiment/crypto-pipeline/run.ts",
+    "crypto:refresh": "deno run -A src/0.8/experiment/RefreshComixBundle.ts"
   }
 }

@@ -3,7 +3,7 @@ import {
   DUINavigationButton,
   RequestManager,
   SourceStateManager,
-} from "@paperback/types";
+} from "@paperback/types-0.8";
 
 import {
   API_BASE,
@@ -14,6 +14,7 @@ import {
   CONTENT_TYPES,
 } from "./Common";
 import { signUrl } from "./ComixHash";
+import type { ScrambleScheme } from "../../../shared/descramble/descramble.ts";
 
 interface TagCache {
   genre: APIGenreItem[];
@@ -30,6 +31,16 @@ export const TRENDING_OPTIONS = [
   { id: "90", label: "3 months" },
   { id: "180", label: "6 months" },
   { id: "365", label: "1 year" },
+];
+
+// Tile-descramble permutation schemes, exposed as a debug override. "auto" keeps
+// the header-driven dispatch (the shipping default); the others force one scheme
+// so a user can confirm which one clears an occasionally-scrambled page.
+export const DESCRAMBLE_SCHEME_OPTIONS = [
+  { id: "auto", label: "Auto (header)" },
+  { id: "lcg", label: "LCG (ranqd1)" },
+  { id: "xorshift", label: "xorshift32" },
+  { id: "gf2affine", label: "GF(2)-affine" },
 ];
 
 // Helper to prevent JS GC from destroying UI closures before iOS runs them
@@ -75,6 +86,19 @@ export const getTrendingLimit = async (
 ): Promise<string[]> => {
   const val = await stateManager.retrieve("trending_limit") as string[];
   return val ?? ["30"];
+};
+
+// Returns the forced tile-descramble scheme, or null to keep header dispatch.
+export const getDescrambleScheme = async (
+  stateManager: SourceStateManager,
+): Promise<ScrambleScheme | null> => {
+  const val = await stateManager.retrieve("descramble_scheme") as
+    | string[]
+    | string
+    | null;
+  const id = Array.isArray(val) ? val[0] : val;
+  if (id === "lcg" || id === "xorshift" || id === "gf2affine") return id;
+  return null; // "auto" / unset → header dispatch
 };
 
 // --- HELPERS: GROUP FILTERING ---
@@ -176,6 +200,33 @@ export const contentSettings = (
                     return CONTENT_RATINGS.find((r) => r.id === value)?.label ??
                       value;
                   },
+                }),
+              ]),
+          }),
+          // 3. Image Descramble (advanced / debug)
+          App.createDUISection({
+            id: "descramble_settings",
+            header: "Image Descramble (Advanced)",
+            footer:
+              "Force the tile-descramble permutation scheme. Leave on Auto unless a page renders scrambled; then try each scheme to find the one that clears it.",
+            isHidden: false,
+            rows: async () =>
+              keepAlive([
+                App.createDUISelect({
+                  id: "descramble_scheme",
+                  label: "Descramble Scheme",
+                  options: DESCRAMBLE_SCHEME_OPTIONS.map((o) => o.id),
+                  value: App.createDUIBinding({
+                    get: async () => [
+                      (await getDescrambleScheme(stateManager)) ?? "auto",
+                    ],
+                    set: async (newValue: string[]) =>
+                      await stateManager.store("descramble_scheme", newValue),
+                  }),
+                  allowsMultiselect: false,
+                  labelResolver: async (value: string) =>
+                    DESCRAMBLE_SCHEME_OPTIONS.find((o) => o.id === value)
+                      ?.label ?? value,
                 }),
               ]),
           }),

@@ -19,12 +19,12 @@ import {
   SourceIntents,
   SourceManga,
   TagSection,
-} from "@paperback/types";
+} from "@paperback/types-0.8";
 
 import { Parser } from "./Parser";
 import { fetchSigned, signUrl } from "./ComixHash";
-import { emit } from "../../lib/telemetry.ts";
-import { DEBUG, debugLog } from "../../lib/debug-log.ts";
+import { emit } from "../lib/telemetry.ts";
+import { DEBUG, debugLog } from "../lib/debug-log.ts";
 import {
   API_BASE,
   APIChapterResult,
@@ -42,6 +42,7 @@ import {
   contentSettings,
   getCachedTags,
   getContentRatingMax,
+  getDescrambleScheme,
   getStrictNameMatching,
   getTagAndMode,
   getTagBlacklist,
@@ -58,13 +59,14 @@ import {
   tagFilterSettings,
 } from "./Settings";
 
+import { decryptComixImageByParams, readEncHeaders } from "./ComixDescramble";
 import {
-  computeDescrambleLookup,
-  decryptComixImageByParams,
-  readEncHeaders,
+  autoSchemeFromAlgo,
+  descrambleImage,
   readScrambleHeaders,
-} from "./ComixDescramble";
-import { computeDescrambleLookupB } from "./ComixTileB";
+  type ScrambleScheme,
+} from "../../../shared/descramble/descramble.ts";
+import { pbCanvasBackend } from "./CanvasBackend";
 
 // Heuristic: is this URL a chapter-page image request (vs. an /api/v1 call)?
 // Used only to scope debug logging to image traffic.
@@ -134,65 +136,35 @@ export class ComixTo extends Source
         const scr = readScrambleHeaders(response.headers);
         if (scr) {
           try {
-            const srcImage = App.createPBImage({ data: response.rawData });
-            const { width, height } = srcImage;
-            const { cols, rows, seed, algo, seedHashXor } = scr;
-            const tw = (width / cols) | 0;
-            const th = (height / rows) | 0;
-            // The effective Fisher-Yates seed is the X-Scramble-Seed XORed with the
-            // X-Scramble-Hash constant (comix added this header in bundle 58c4b11b…;
-            // seedHashXor is 0 when the header is absent/unknown — pre-hash behavior).
-            const effSeed = (seed ^ seedHashXor) >>> 0;
-            // algo 3 (current scheme) is the GF(2)-affine Fisher-Yates, cracked for
-            // the 5x5 grid (ComixTileB). algo 2 / absent is the legacy xorshift32.
-            const lookup = algo === 3 && cols === 5 && rows === 5
-              ? computeDescrambleLookupB(effSeed)
-              : computeDescrambleLookup(effSeed, cols * rows);
-            const canvas = App.createPBCanvas();
-            canvas.setSize(width, height);
-            for (let i = 0; i < lookup.length; i++) {
-              const cleanRow = (i / cols) | 0;
-              const cleanCol = i % cols;
-              const srcIdx = lookup[i]!;
-              const srcRow = (srcIdx / cols) | 0;
-              const srcCol = srcIdx % cols;
-              canvas.drawImage(
-                srcImage,
-                srcCol * tw,
-                srcRow * th,
-                tw,
-                th,
-                cleanCol * tw,
-                cleanRow * th,
-              );
-            }
-            // Prefer WebP so Kingfisher's WebPProcessor (keyed on the .webp URL) can
-            // still decode it; fall back to PNG if WebP encoding isn't supported.
-            let encoded = canvas.encode("image/webp");
-            let outMime = "image/webp";
-            if (!encoded) {
-              encoded = canvas.encode("image/png");
-              outMime = "image/png";
-            }
-            if (encoded) {
-              (response as any).rawData = encoded;
-              (response as any).mimeType = outMime;
-              if (response.headers) {
-                (response.headers as any)["content-type"] = outMime;
-                (response.headers as any)["Content-Type"] = outMime;
-              }
+            // Resolve the permutation scheme: a user override (debug setting) wins,
+            // otherwise the header-driven default dispatch. The LCG scheme is now
+            // available here too (shared with 0.9), so pages the legacy dispatch
+            // couldn't handle can be cleared by forcing "lcg" in settings.
+            const override = await getDescrambleScheme(this.stateManager);
+            const scheme: ScrambleScheme = override ??
+              autoSchemeFromAlgo(scr.algo, scr.cols, scr.rows);
+            const { data, mime } = await descrambleImage(
+              response.rawData,
+              scr,
+              "image/webp",
+              pbCanvasBackend,
+              scheme,
+            );
+            (response as any).rawData = data;
+            (response as any).mimeType = mime;
+            if (response.headers) {
+              (response.headers as any)["content-type"] = mime;
+              (response.headers as any)["Content-Type"] = mime;
             }
             if (DEBUG) {
               debugLog("img_descramble", {
-                seed,
-                effSeed,
-                seedHashXor,
-                cols,
-                rows,
-                algo,
-                width,
-                height,
-                encoded: !!encoded,
+                seed: scr.seed,
+                seedHashXor: scr.seedHashXor,
+                cols: scr.cols,
+                rows: scr.rows,
+                algo: scr.algo,
+                scheme,
+                mime,
               });
             }
           } catch (error: any) {
@@ -314,7 +286,7 @@ export class ComixTo extends Source
   private async fetchTimed(
     label: string,
     url: string,
-  ): Promise<import("@paperback/types").Response> {
+  ): Promise<import("@paperback/types-0.8").Response> {
     const path = url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api\/v1/, "")
       .split("?")[0]!;
     const t0 = Date.now();

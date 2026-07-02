@@ -3,8 +3,8 @@ export const DOMAIN = "https://comix.to";
 
 // Generic string/date helpers now live in the shared lib and are re-exported
 // here so the Comix modules can keep importing them from a single barrel.
-export { normalizeString } from "../../lib/strings.ts";
-export { parseRelativeTime } from "../../lib/time.ts";
+export { normalizeString } from "../../../shared/strings.ts";
+export { parseRelativeTime } from "../../../shared/time.ts";
 
 export interface APIResponse<T> {
   status: string; // "ok" | "error"

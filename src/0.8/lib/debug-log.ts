@@ -8,7 +8,7 @@
 // To use: start a local log server (see the repo's dev tooling), copy the
 // "LAN URL" it prints, and paste it below. The device POSTs here over the LAN.
 
-import { RequestManager } from "@paperback/types";
+import { RequestManager } from "@paperback/types-0.8";
 
 export const LOCAL_LOG_URL: string = "";
 

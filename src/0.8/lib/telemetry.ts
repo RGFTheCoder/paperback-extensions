@@ -6,7 +6,7 @@
 // plaintext. Set TELEMETRY_URL to "" (the default) to disable entirely — the
 // bundler then dead-code-eliminates the network path.
 
-import { RequestManager } from "@paperback/types";
+import { RequestManager } from "@paperback/types-0.8";
 import { DEBUG, debugLog } from "./debug-log.ts";
 
 // Set to your telemetry collector URL. Empty string disables telemetry.

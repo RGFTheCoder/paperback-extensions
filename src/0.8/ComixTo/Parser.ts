@@ -4,7 +4,7 @@ import {
   PartialSourceManga,
   SourceManga,
   TagSection,
-} from "@paperback/types";
+} from "@paperback/types-0.8";
 import {
   APIChapterItem,
   APIGenreItem,

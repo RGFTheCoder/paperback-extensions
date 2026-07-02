@@ -17,6 +17,7 @@
 
 import { copy, ensureDir, exists } from "@std/fs";
 import { join, toFileUrl } from "@std/path";
+import { typesVersionFor } from "../version.ts";
 
 // Repository metadata for the generated homepage. Edit `baseURL` to match where
 // this branch's bundles are published (GitHub Pages destination = branch name).
@@ -27,9 +28,8 @@ const REPO = {
 };
 
 const CWD = Deno.cwd();
-const SRC = join(CWD, "src");
-const BUNDLES = join(CWD, "bundles");
-const TYPES_PKG = join(CWD, "node_modules/@paperback/types/package.json");
+const SRC = join(CWD, "src", "0.8");
+const BUNDLES = join(CWD, "bundles", "0.8");
 
 // Paperback 0.8 reads a global `Sources` object from the bundle. The synthetic
 // entry sets `globalThis.Sources`; this footer mirrors it onto the top-level
@@ -149,8 +149,7 @@ function toManifestSource(id: string, info: SourceInfoLike) {
 async function writeVersioning(
   sources: Array<{ id: string; info: SourceInfoLike }>,
 ): Promise<void> {
-  const typesVersion = JSON.parse(await Deno.readTextFile(TYPES_PKG))
-    .version as string;
+  const typesVersion = await typesVersionFor("@paperback/types-0.8");
   const manifest = {
     buildTime: new Date(),
     sources: sources.map(({ id, info }) => toManifestSource(id, info)),
@@ -235,7 +234,7 @@ async function main(): Promise<void> {
   await writeVersioning(built);
   await Deno.writeTextFile(join(BUNDLES, "index.html"), renderHomepage(built));
 
-  console.log(`Done. Bundled ${built.length} extension(s) into bundles/.`);
+  console.log(`Done. Bundled ${built.length} extension(s) into bundles/0.8/.`);
 }
 
 await main();
