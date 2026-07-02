@@ -76,12 +76,12 @@ function isImageRequestUrl(url: string): boolean {
     /wowpic\d*\.|\/s?i+\d*\//i.test(url);
 }
 
-export const ComixToInfo: SourceInfo = {
+export const ComixDMCInfo: SourceInfo = {
   version: "1.9.18",
-  name: "ComixTo",
+  name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
-  authorWebsite: "https://paperback.damastacoda.dev/0.8/stable",
+  authorWebsite: "https://paperback.damastacoda.dev/unified/stable/0.8",
   description:
     "Comix.to Extension with advanced filters. Fork of AthK extensions for Paperback 0.8 (edited by acepilot147).",
   contentRating: ContentRating.EVERYONE,
@@ -98,7 +98,7 @@ export const ComixToInfo: SourceInfo = {
     SourceIntents.SETTINGS_UI,
 };
 
-export class ComixTo extends Source
+export class ComixDMC extends Source
   implements
     MangaProviding,
     ChapterProviding,
@@ -174,7 +174,7 @@ export class ComixTo extends Source
               });
             }
             console.log(
-              `[ComixTo] descramble error: ${error?.message ?? String(error)}`,
+              `[ComixDMC] descramble error: ${error?.message ?? String(error)}`,
             );
           }
           return response;
@@ -213,7 +213,9 @@ export class ComixTo extends Source
             });
           }
           console.log(
-            `[ComixTo] image decrypt error: ${error?.message ?? String(error)}`,
+            `[ComixDMC] image decrypt error: ${
+              error?.message ?? String(error)
+            }`,
           );
         }
 

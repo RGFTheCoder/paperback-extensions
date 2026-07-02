@@ -1,6 +1,6 @@
 // Step 3 — validate the EMITTED TS files against the live bundle.
 //
-// Dynamically imports src/ComixTo/ComixFastSigner.ts and ComixFastDecrypt.ts
+// Dynamically imports src/0.8/ComixDMC/ComixFastSigner.ts and ComixFastDecrypt.ts
 // (Deno runs TS natively) and checks them against the live bundle's signer +
 // response interceptor across many samples. This tests the shipped files
 // (catching generation bugs), not just the in-process logic.
@@ -56,8 +56,8 @@ export async function validate() {
   });
 
   const { reqI, resI } = bootBundle();
-  const { fastGenerateHash } = await importTs(resolve(ROOT, "src/ComixTo/ComixFastSigner.ts"));
-  const { fastDecryptComixPayload } = await importTs(resolve(ROOT, "src/ComixTo/ComixFastDecrypt.ts"));
+  const { fastGenerateHash } = await importTs(resolve(ROOT, "src/0.8/ComixDMC/ComixFastSigner.ts"));
+  const { fastDecryptComixPayload } = await importTs(resolve(ROOT, "src/0.8/ComixDMC/ComixFastDecrypt.ts"));
 
   let signPass = 0, signFail = 0;
   for (const p of SIGN_PATHS) {

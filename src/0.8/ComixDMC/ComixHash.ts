@@ -1,6 +1,6 @@
 /**
  * Comix API signing and encrypted-response decoding — the central interface for
- * ComixTo. Signing and decryption are delegated to the native, generated modules
+ * ComixDMC. Signing and decryption are delegated to the native, generated modules
  * (ComixFastSigner / ComixFastDecrypt); the live-VM bundle is no longer used.
  *
  * Regenerate those modules when comix.to rotates secure-*.js:

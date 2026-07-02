@@ -1,8 +1,8 @@
 // Step 2 — generate Paperback-safe native TS from constants.json.
 //
 // Emits:
-//   src/ComixTo/ComixFastDecrypt.ts  — fastDecryptComixPayload(path, payload, headers)
-//   src/ComixTo/ComixFastSigner.ts   — fastGenerateHash(rawPath)
+//   src/0.8/ComixDMC/ComixFastDecrypt.ts  — fastDecryptComixPayload(path, payload, headers)
+//   src/0.8/ComixDMC/ComixFastSigner.ts   — fastGenerateHash(rawPath)
 //
 // Both are self-contained, JavaScriptCore-safe (no Node/DOM/crypto APIs), and
 // embed the constants. Decrypt applies inverse stages 1..N; sign applies forward
@@ -15,8 +15,8 @@ import { resolve } from "node:path";
 import { ROOT } from "./lib.ts";
 
 const CONSTANTS = resolve(ROOT, "experiment/crypto-pipeline/constants.json");
-const DECRYPT_OUT = resolve(ROOT, "src/ComixTo/ComixFastDecrypt.ts");
-const SIGNER_OUT = resolve(ROOT, "src/ComixTo/ComixFastSigner.ts");
+const DECRYPT_OUT = resolve(ROOT, "src/0.8/ComixDMC/ComixFastDecrypt.ts");
+const SIGNER_OUT = resolve(ROOT, "src/0.8/ComixDMC/ComixFastSigner.ts");
 
 // Shared helpers embedded verbatim into both generated files. Kept as a raw
 // string so what we test (Step 3) is exactly what ships.
