@@ -24,8 +24,8 @@ import {
   type OptionItem,
   type ResultManga,
   type SearchMetadata,
-} from "./models";
-import { getPoster, getRanking, parseRelativeDate } from "./utils/helpers";
+} from "./models.ts";
+import { getPoster, getRanking, parseRelativeDate } from "./utils/helpers.ts";
 
 export class ComixParser {
   parseSection(section: string, json: ApiResponse<MangaItem[]>) {

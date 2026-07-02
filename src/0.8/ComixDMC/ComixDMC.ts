@@ -21,8 +21,8 @@ import {
   TagSection,
 } from "@paperback/types-0.8";
 
-import { Parser } from "./Parser";
-import { fetchSigned, signUrl } from "./ComixHash";
+import { Parser } from "./Parser.ts";
+import { fetchSigned, signUrl } from "./ComixHash.ts";
 import { emit } from "../lib/telemetry.ts";
 import { DEBUG, debugLog } from "../lib/debug-log.ts";
 import {
@@ -37,7 +37,7 @@ import {
   normalizeString,
   ORDER_OPTIONS,
   PUBLICATION_STATUS,
-} from "./Common";
+} from "./Common.ts";
 import {
   contentSettings,
   getCachedTags,
@@ -57,16 +57,19 @@ import {
   keepAlive,
   resetSettings,
   tagFilterSettings,
-} from "./Settings";
+} from "./Settings.ts";
 
-import { decryptComixImageByParams, readEncHeaders } from "./ComixDescramble";
+import {
+  decryptComixImageByParams,
+  readEncHeaders,
+} from "./ComixDescramble.ts";
 import {
   autoSchemeFromAlgo,
   descrambleImage,
   readScrambleHeaders,
   type ScrambleScheme,
 } from "../../../shared/descramble/descramble.ts";
-import { pbCanvasBackend } from "./CanvasBackend";
+import { pbCanvasBackend } from "./CanvasBackend.ts";
 
 // Heuristic: is this URL a chapter-page image request (vs. an /api/v1 call)?
 // Used only to scope debug logging to image traffic.

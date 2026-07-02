@@ -22,16 +22,16 @@ import {
   type Filters,
   type MangaItem,
   type ResultManga,
-} from "./models";
+} from "./models.ts";
 import {
   descrambleImage,
   readScrambleHeaders,
   type ScrambleScheme,
 } from "../../../shared/descramble/descramble.ts";
-import { domCanvasBackend } from "./utils/canvasBackend";
-import { getDescrambleScheme } from "./forms/settings";
-import type { ComixFilter } from "./utils/filter";
-import { chapterListViaWebView, pageListViaWebView } from "./utils/webView";
+import { domCanvasBackend } from "./utils/canvasBackend.ts";
+import { getDescrambleScheme } from "./forms/settings.ts";
+import type { ComixFilter } from "./utils/filter.ts";
+import { chapterListViaWebView, pageListViaWebView } from "./utils/webView.ts";
 
 export class ComixInterceptor extends PaperbackInterceptor {
   override async interceptRequest(request: Request): Promise<Request> {

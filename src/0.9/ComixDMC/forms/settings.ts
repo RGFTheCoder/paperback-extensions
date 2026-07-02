@@ -16,8 +16,8 @@ import {
   ToggleRow,
 } from "@paperback/types-0.9";
 
-import type { ComixFilter } from "../utils/filter";
-import { discoverySections } from "../utils/filter";
+import type { ComixFilter } from "../utils/filter.ts";
+import { discoverySections } from "../utils/filter.ts";
 import type { ScrambleScheme } from "../../../../shared/descramble/descramble.ts";
 
 // Tile-descramble scheme override, exposed for on-device testing. "auto" keeps the

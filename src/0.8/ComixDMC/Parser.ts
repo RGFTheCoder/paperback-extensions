@@ -13,7 +13,7 @@ import {
   isRatingAllowed,
   normalizeString,
   parseRelativeTime,
-} from "./Common";
+} from "./Common.ts";
 
 const NO_POSTER = "https://comix.to/images/no-poster.png";
 const isNsfw = (rating?: string) => rating != null && rating !== "safe";

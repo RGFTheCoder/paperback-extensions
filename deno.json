@@ -1,9 +1,5 @@
 {
   "description": "Comix extension for Paperback 0.8 and 0.9 (DMC fork), unified monorepo.",
-  "nodeModulesDir": "none",
-  "unstable": [
-    "sloppy-imports"
-  ],
   "imports": {
     "@paperback/types-0.8": "npm:@paperback/types@^0.8.0-alpha.47",
     "@paperback/types-0.9": "npm:@paperback/types@^1.0.0-alpha.92",
@@ -27,14 +23,13 @@
   "fmt": {
     "exclude": [
       "bundles",
-      "node_modules",
-      "src/0.8/experiment"
+      "node_modules"
     ]
   },
   "exclude": [
     "bundles",
     "node_modules",
-    "src/0.8/experiment"
+    "src/0.8/experiment/ComixBundle.ts"
   ],
   "tasks": {
     "fmt": "deno fmt",

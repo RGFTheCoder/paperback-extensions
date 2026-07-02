@@ -13,20 +13,29 @@ import { extract } from "./extract.ts";
 import { generate } from "./generate.ts";
 import { validate } from "./validate.ts";
 
-async function run({ refresh }) {
+async function run({ refresh }: { refresh?: boolean }) {
   if (refresh) {
     console.log("== refresh secure.js ==");
     const cmd = new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", resolve(ROOT, "experiment/RefreshComixBundle.ts")],
-      stdin: "inherit", stdout: "inherit", stderr: "inherit", cwd: ROOT,
+      stdin: "inherit",
+      stdout: "inherit",
+      stderr: "inherit",
+      cwd: ROOT,
     });
     const r = cmd.outputSync();
-    if (r.code !== 0) throw new Error("refresh failed — check CF_CLEARANCE / SESSION / USER_AGENT");
+    if (r.code !== 0) {
+      throw new Error(
+        "refresh failed — check CF_CLEARANCE / SESSION / USER_AGENT",
+      );
+    }
   }
 
   console.log("== extract ==");
   const c = extract();
-  console.log(`   bundle ${c.bundleId} — ${c.algorithm}, ${c.rounds} rounds; signer=${c.verified.signer} decrypt=${c.verified.decrypt}`);
+  console.log(
+    `   bundle ${c.bundleId} — ${c.algorithm}, ${c.rounds} rounds; signer=${c.verified.signer} decrypt=${c.verified.decrypt}`,
+  );
 
   console.log("== generate ==");
   const g = generate();
@@ -35,11 +44,20 @@ async function run({ refresh }) {
 
   console.log("== validate ==");
   const v = await validate();
-  if (!v.ok) throw new Error(`validation failed (signer ${v.signFail} fail, decrypt ${v.decFail} fail)`);
-  console.log(`\nDONE — signer ${v.signPass} pass, decrypt ${v.decPass} pass. Native files match the live bundle.`);
+  if (!v.ok) {
+    throw new Error(
+      `validation failed (signer ${v.signFail} fail, decrypt ${v.decFail} fail)`,
+    );
+  }
+  console.log(
+    `\nDONE — signer ${v.signPass} pass, decrypt ${v.decPass} pass. Native files match the live bundle.`,
+  );
   return v;
 }
 
 run({ refresh: Deno.args.includes("--refresh") })
   .then((v) => Deno.exit(v.ok ? 0 : 1))
-  .catch((e) => { console.error(`\nFAILED: ${e?.message ?? e}`); Deno.exit(1); });
+  .catch((e) => {
+    console.error(`\nFAILED: ${e?.message ?? e}`);
+    Deno.exit(1);
+  });

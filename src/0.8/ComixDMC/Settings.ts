@@ -12,8 +12,8 @@ import {
   APIResponse,
   CONTENT_RATINGS,
   CONTENT_TYPES,
-} from "./Common";
-import { signUrl } from "./ComixHash";
+} from "./Common.ts";
+import { signUrl } from "./ComixHash.ts";
 import type { ScrambleScheme } from "../../../shared/descramble/descramble.ts";
 
 interface TagCache {

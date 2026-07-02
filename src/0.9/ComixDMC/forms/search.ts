@@ -12,8 +12,8 @@ import {
   TriStateSelectRow,
 } from "@paperback/types-0.9";
 
-import type { SearchMetadata, TagMap } from "../models";
-import type { ComixFilter } from "../utils/filter";
+import type { SearchMetadata, TagMap } from "../models.ts";
+import type { ComixFilter } from "../utils/filter.ts";
 
 export class ComixAdvancedSearchForm extends AdvancedSearchForm {
   private searchMetadata: SearchMetadata;

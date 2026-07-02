@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /* Copyright © 2026 Inkdex */
 
-import { type OptionItem } from "../models";
+import { type OptionItem } from "../models.ts";
 
 export class ComixFilter {
   genres: OptionItem[] = [];

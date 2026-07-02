@@ -4,7 +4,7 @@
 import { type CookieStorageInterceptor } from "@paperback/types-0.9";
 import * as cheerio from "cheerio";
 
-import { type ChapterItem, DOMAIN } from "../models";
+import { type ChapterItem, DOMAIN } from "../models.ts";
 
 // Loads a Comix page in a WebView and lets the site's own JS run end-to-end:
 // the bundle signs API requests and decrypts `{e:"blob"}` responses internally,

@@ -11,8 +11,8 @@
  */
 
 import { RequestManager, Response } from "@paperback/types-0.8";
-import { fastGenerateHash } from "./ComixFastSigner";
-import { fastDecryptComixPayload } from "./ComixFastDecrypt";
+import { fastGenerateHash } from "./ComixFastSigner.ts";
+import { fastDecryptComixPayload } from "./ComixFastDecrypt.ts";
 import { emit } from "../lib/telemetry.ts";
 
 // Paths the live bundle's request interceptor signs — verified by probing the

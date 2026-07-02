@@ -21,7 +21,7 @@
 // is VM bytecode whose per-byte keystream is this LCG. Verified against the live
 // bundle across many seeds (4096 bytes each) and real chapter pages.
 
-import { decryptComixImageAlgo2 } from "./ComixAlgo2";
+import { decryptComixImageAlgo2 } from "./ComixAlgo2.ts";
 
 const LCG_MUL = 1000005; // 0x000F4245
 const LCG_INC = 0x499602d3;

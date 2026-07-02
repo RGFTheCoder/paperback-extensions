@@ -20,14 +20,19 @@ import {
   type SourceManga,
 } from "@paperback/types-0.9";
 
-import { ComixAdvancedSearchForm } from "./forms/search";
-import { getDiscoverySectionsOrder, MainSettings } from "./forms/settings";
-import type { Filters, Metadata, OptionItem, SearchMetadata } from "./models";
-import { ComixApi, ComixInterceptor } from "./network";
-import { ComixParser } from "./parsers";
-import type ComixConfig from "./pbconfig";
-import { ComixFilter } from "./utils/filter";
-import { buildFilter, getDefaultMetadata } from "./utils/helpers";
+import { ComixAdvancedSearchForm } from "./forms/search.ts";
+import { getDiscoverySectionsOrder, MainSettings } from "./forms/settings.ts";
+import type {
+  Filters,
+  Metadata,
+  OptionItem,
+  SearchMetadata,
+} from "./models.ts";
+import { ComixApi, ComixInterceptor } from "./network.ts";
+import { ComixParser } from "./parsers.ts";
+import type ComixConfig from "./pbconfig.ts";
+import { ComixFilter } from "./utils/filter.ts";
+import { buildFilter, getDefaultMetadata } from "./utils/helpers.ts";
 
 export class ComixExtension implements ExtensionImpl<typeof ComixConfig> {
   globalRateLimiter = new BasicRateLimiter("rateLimiter", {

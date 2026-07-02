@@ -9,8 +9,8 @@ import {
   NO_IMAGE,
   type SearchMetadata,
   type TagMap,
-} from "../models";
-import type { ComixFilter } from "./filter";
+} from "../models.ts";
+import type { ComixFilter } from "./filter.ts";
 
 export function getDefaultMetadata(
   filter: ComixFilter,
