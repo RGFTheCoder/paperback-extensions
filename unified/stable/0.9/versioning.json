@@ -1,11 +1,11 @@
 {
-  "buildTime": "2026-07-02T01:13:37.024Z",
+  "buildTime": "2026-07-02T01:34:49.606Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.92",
     "types": "1.0.0-alpha.92"
   },
   "repository": {
-    "name": "Paperback Extension Repository",
+    "name": "DMC's Extensions (0.9)",
     "description": "Comix extension for Paperback 0.8 and 0.9 (DMC fork), unified monorepo."
   },
   "sources": [
