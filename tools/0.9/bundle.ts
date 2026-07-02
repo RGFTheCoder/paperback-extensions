@@ -134,9 +134,9 @@ async function writeVersioning(sources: string[]): Promise<void> {
       types: typesVersion,
     },
     repository: {
-      name: projectInfo.name ?? "Paperback Extension Repository",
+      name: projectInfo.name ?? "DMC's Extensions (0.9)",
       description: projectInfo.description ??
-        "An extension repository for Paperback",
+        "DMC's extensions for Paperback 0.9",
     },
     sources: collected,
   };

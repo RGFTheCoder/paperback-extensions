@@ -22,9 +22,9 @@ import { typesVersionFor } from "../version.ts";
 // Repository metadata for the generated homepage. Edit `baseURL` to match where
 // this branch's bundles are published (GitHub Pages destination = branch name).
 const REPO = {
-  name: "ComixTo (DMC)",
-  description: "Comix.to extension for Paperback 0.8 (DMC fork).",
-  baseURL: "https://paperback.damastacoda.dev/0.8/stable/",
+  name: "DMC's Extensions (0.8)",
+  description: "DMC's extensions for Paperback 0.8.",
+  baseURL: "https://paperback.damastacoda.dev/unified/stable/0.8/",
 };
 
 const CWD = Deno.cwd();
