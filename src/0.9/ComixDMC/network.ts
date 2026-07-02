@@ -70,7 +70,12 @@ export class ComixInterceptor extends PaperbackInterceptor {
       // another for on-device testing. "none" shows the raw scrambled page;
       // "adaptive" reconstructs from pixel content.
       const override = getDescrambleScheme();
-      if (override === "none") return data; // show scrambled as-is
+      if (override === "none") {
+        console.log(
+          `[Comix] descramble skipped (mode=none) for ${request.url}`,
+        );
+        return data; // show scrambled as-is
+      }
       const mode: DescrambleMode = override ?? "lcg";
       const result = await descrambleImage(
         data,
@@ -78,6 +83,9 @@ export class ComixInterceptor extends PaperbackInterceptor {
         response.mimeType ?? "image/webp",
         domCanvasBackend,
         mode,
+      );
+      console.log(
+        `[Comix] descrambled page (mode=${mode}, grid=${scrambleParams.cols}x${scrambleParams.rows}, seed=${scrambleParams.seed}) for ${request.url}`,
       );
       return result.data;
     } catch (error) {

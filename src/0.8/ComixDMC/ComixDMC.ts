@@ -80,7 +80,7 @@ function isImageRequestUrl(url: string): boolean {
 }
 
 export const ComixDMCInfo: SourceInfo = {
-  version: "1.10.0-alpha.4",
+  version: "1.10.0-alpha.5",
   name: "ComixTo (DMC)",
   icon: "icon.png",
   author: "RGFTheCoder",
@@ -143,7 +143,10 @@ export class ComixDMC extends Source
             // otherwise the header-driven default dispatch. "none" shows the raw
             // scrambled page; "adaptive" reconstructs from pixel content.
             const override = await getDescrambleScheme(this.stateManager);
-            if (override === "none") return response; // show scrambled as-is
+            if (override === "none") {
+              console.log("[ComixDMC] descramble skipped (mode=none)");
+              return response; // show scrambled as-is
+            }
             const mode: DescrambleMode = override ??
               autoSchemeFromAlgo(scr.algo, scr.cols, scr.rows);
             const { data, mime } = await descrambleImage(
@@ -172,6 +175,9 @@ export class ComixDMC extends Source
                 mime,
               });
             }
+            console.log(
+              `[ComixDMC] descrambled page (mode=${mode}, grid=${scr.cols}x${scr.rows}, seed=${scr.seed})`,
+            );
           } catch (error) {
             const message = error instanceof Error
               ? error.message

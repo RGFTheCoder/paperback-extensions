@@ -294,6 +294,7 @@ export class MainSettings extends BaseSettings {
   }
 
   handleDescrambleSchemeChange(id: string[]) {
+    console.log(`[Comix] descramble scheme changed → ${id[0] ?? "auto"}`);
     Application.setState(id, "descramble_scheme");
     this.reloadForm();
     return Promise.resolve();

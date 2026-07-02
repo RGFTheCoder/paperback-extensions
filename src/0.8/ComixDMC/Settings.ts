@@ -239,8 +239,14 @@ export const contentSettings = (
                     get: async () => [
                       (await getDescrambleScheme(stateManager)) ?? "auto",
                     ],
-                    set: async (newValue: string[]) =>
-                      await stateManager.store("descramble_scheme", newValue),
+                    set: async (newValue: string[]) => {
+                      console.log(
+                        `[ComixDMC] descramble scheme changed → ${
+                          newValue[0] ?? "auto"
+                        }`,
+                      );
+                      await stateManager.store("descramble_scheme", newValue);
+                    },
                   }),
                   allowsMultiselect: false,
                   labelResolver: (value: string) =>
