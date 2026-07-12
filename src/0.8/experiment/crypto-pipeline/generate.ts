@@ -15,12 +15,12 @@ import { resolve } from "node:path";
 import { type Constants, ROOT } from "./lib.ts";
 
 const CONSTANTS = resolve(ROOT, "experiment/crypto-pipeline/constants.json");
-const DECRYPT_OUT = resolve(ROOT, "src/0.8/ComixDMC/ComixFastDecrypt.ts");
-const SIGNER_OUT = resolve(ROOT, "src/0.8/ComixDMC/ComixFastSigner.ts");
+const DECRYPT_OUT = resolve(ROOT, "ComixDMC/ComixFastDecrypt.ts");
+const SIGNER_OUT = resolve(ROOT, "ComixDMC/ComixFastSigner.ts");
 
 // Shared helpers embedded verbatim into both generated files. Kept as a raw
 // string so what we test (Step 3) is exactly what ships.
-const SHARED = String
+const SHARED_COMMON = String
   .raw`const B64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 function b64Decode(s: string): number[] {
@@ -41,7 +41,19 @@ function b64Decode(s: string): number[] {
     return out;
 }
 
-// Inverse-permutation cache, keyed by the stage's forward S-box base64.
+const KEY_CACHE: Record<string, number[]> = {};
+function keyBytes(keyB64: string): number[] {
+    const cached = KEY_CACHE[keyB64];
+    if (cached) return cached;
+    const k = b64Decode(keyB64);
+    KEY_CACHE[keyB64] = k;
+    return k;
+}`;
+
+// Inverse-permutation helper. Only the decrypt path uses this, so it is emitted
+// into ComixFastDecrypt.ts alone (including it in the signer trips no-unused-vars).
+const SHARED_INV = String
+  .raw`// Inverse-permutation cache, keyed by the stage's forward S-box base64.
 const INV_CACHE: Record<string, number[]> = {};
 function inverseSbox(tableB64: string): number[] {
     const cached = INV_CACHE[tableB64];
@@ -51,14 +63,6 @@ function inverseSbox(tableB64: string): number[] {
     for (let i = 0; i < 256; i++) inv[table[i]!] = i;
     INV_CACHE[tableB64] = inv;
     return inv;
-}
-const KEY_CACHE: Record<string, number[]> = {};
-function keyBytes(keyB64: string): number[] {
-    const cached = KEY_CACHE[keyB64];
-    if (cached) return cached;
-    const k = b64Decode(keyB64);
-    KEY_CACHE[keyB64] = k;
-    return k;
 }`;
 
 function genDecrypt(c: Constants) {
@@ -74,7 +78,9 @@ function genDecrypt(c: Constants) {
  * Applied for stages 1..N. Verified byte-exact against the live bundle.
  */
 
-${SHARED}
+${SHARED_COMMON}
+
+${SHARED_INV}
 
 const DECRYPT_STAGES: { sboxB64: string; keyB64: string; iv: number }[] = ${stages};
 
@@ -126,13 +132,13 @@ function normalizeHeaders(headers: Record<string, string>): Record<string, strin
  * result. Pass-through when the payload is not encrypted. Mirrors the bundle's
  * response interceptor, including the { status: "ok", result } unwrap.
  */
-export function fastDecryptComixPayload(rawPath: string, payload: any, headers: Record<string, string> = {}): any {
+export function fastDecryptComixPayload(rawPath: string, payload: unknown, headers: Record<string, string> = {}): unknown {
     void rawPath;
-    if (!(payload && typeof payload === "object" && typeof payload.e === "string")) return payload;
+    if (!(payload && typeof payload === "object" && typeof (payload as { e?: unknown }).e === "string")) return payload;
     const h = normalizeHeaders(headers);
     if (h["x-enc"] && h["x-enc"] !== "1") return payload;
 
-    let data = b64Decode(payload.e);
+    let data = b64Decode((payload as { e: string }).e);
     for (const stage of DECRYPT_STAGES) data = decryptRound(data, stage.sboxB64, stage.keyB64, stage.iv);
 
     const parsed = JSON.parse(utf8Decode(data));
@@ -154,7 +160,7 @@ function genSigner(c: Constants) {
  * Applied for stages N..1 (reverse of decrypt). Verified against the live token.
  */
 
-${SHARED}
+${SHARED_COMMON}
 
 const SIGN_STAGES: { sboxB64: string; keyB64: string; iv: number }[] = ${stages};
 
